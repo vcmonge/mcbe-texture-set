@@ -1,87 +1,60 @@
-# MCBE Texture Set Generator (web)
+# Texture Set Generator
 
-Port web de la aplicación de escritorio. Se ejecuta íntegramente en el
-navegador (sin backend): la configuración se valida en cliente y el archivo
-`{texture_name}.texture_set.json` se descarga directamente.
+## What is a Texture Set?
 
-Construido con [Vite](https://vite.dev/) y TypeScript, sin frameworks de UI
-(CSS vanilla con estilo OreUI).
+In Minecraft Bedrock, a traditional texture is simply a color image. The Vibrant Visuals and RTX graphics modes use a Physically Based Rendering (PBR) system that requires additional information to simulate how each material interacts with light, such as whether it is shiny, metallic, rough, or has surface detail.
 
-## Requisitos
+A **texture set** is a small JSON file that accompanies a texture and tells the game which images (or fixed values) provide this additional information. It is named `{texture_name}.texture_set.json` and is placed in the same resource pack folder as the color texture.
 
-- Node.js 18 o superior (probado con Node 22)
+Each additional property is defined as a layer:
+
+| Layer | Purpose | Value |
+| --- | --- | --- |
+| `color` | The base texture image. It is the only required layer and the only one used by traditional graphics. | Texture name |
+| `normal` | Normal map, simulates surface details and depth. | Image name |
+| `heightmap` | Height map, adds depth using grayscale values. It is not supported for items. | Image name |
+| `metalness_emissive_roughness` (MER) | Defines three material properties in a single image, red = metalness, green = emissiveness (glows in the dark), blue = roughness. | Image or fixed RGB color |
+| `metalness_emissive_roughness_subsurface` (MERS) | Same as MER, with an additional fourth channel (alpha) for *subsurface scattering*, which simulates light passing through materials such as leaves, wax, or skin. Only supported in Vibrant Visuals. | Image or fixed RGBA color |
+
+Instead of an image, MER and MERS also support a **uniform value**, a color (as an array `[r, g, b]` or `[r, g, b, a]` with values from 0 to 255, or in hexadecimal format) that works like an image filled entirely with that color.
+
+Official reference:
+
+[Texture Set JSON and Introduction to Texture Sets](https://learn.microsoft.com/en-us/minecraft/creator/reference/content/texturesetsreference/texturesetsconcepts/texturesetsintroduction?view=minecraft-bedrock-stable) (Microsoft Learn).
+
+## Requirements
+
+- Node.js 18 or later (tested with Node 22)
 - npm
 
-## Instalación
-
-Desde el directorio `web/`:
+## Installation
 
 ```bash
 npm install
 ```
 
-## Desarrollo
-
-```bash
-npm run dev
-```
-
-Levanta el servidor de desarrollo de Vite con recarga en caliente, por defecto
-en <http://localhost:5173>. Para exponerlo en la red local:
-
-```bash
-npm run dev -- --host
-```
-
-## Build de producción
-
-```bash
-npm run build
-```
-
-Ejecuta primero la comprobación de tipos (`tsc --noEmit`) y después genera la
-build optimizada en `dist/`. Si hay errores de tipos, la build se detiene.
-
-## Previsualizar la build
-
-```bash
-npm run preview
-```
-
-Sirve el contenido de `dist/` localmente (por defecto en
-<http://localhost:4173>) para comprobar la build antes de desplegarla.
-
-## Despliegue
-
-`dist/` contiene únicamente archivos estáticos, por lo que puede alojarse en
-cualquier hosting estático (GitHub Pages, Netlify, Cloudflare Pages, un
-servidor nginx, etc.).
-
-La configuración usa `base: "./"`, así que las rutas de los assets son
-relativas y la build funciona servida desde cualquier subruta.
-
-## Estructura
+## Project Structure
 
 ```text
 web/
-├── index.html            Punto de entrada HTML
-├── public/               Archivos copiados tal cual a dist/ (favicon)
+├── index.html            HTML entry point
+├── public/               Static files copied directly to dist/ (favicon)
 ├── src/
-│   ├── main.ts           Arranque de la aplicación
-│   ├── styles.css        Estilos globales
-│   ├── assets/           Imágenes importadas desde el código
-│   ├── models/           Estado y reglas estructurales del texture set
-│   ├── validators/       Validación de configuraciones
-│   ├── services/         Generación y descarga del JSON
-│   └── ui/               Componentes de la interfaz
+│   ├── main.ts           Application entry point
+│   ├── styles.css        Global styles
+│   ├── assets/           Images imported by the code
+│   ├── models/           Texture set state and structural rules
+│   ├── validators/       Configuration validation
+│   ├── services/         JSON generation and download
+│   └── ui/               UI components
 ├── vite.config.ts
 └── tsconfig.json
 ```
 
-## Scripts disponibles
+## Project Commands
 
-| Comando           | Descripción                                      |
-| ----------------- | ------------------------------------------------ |
-| `npm run dev`     | Servidor de desarrollo con recarga en caliente   |
-| `npm run build`   | Comprobación de tipos y build de producción      |
-| `npm run preview` | Sirve la build de `dist/` localmente             |
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Starts the development server with hot reload |
+| `npm run build` | Runs type checking and creates a production build |
+| `npm run preview` | Serves the production build from `dist/` locally |
