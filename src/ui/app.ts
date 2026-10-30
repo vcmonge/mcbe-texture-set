@@ -183,7 +183,7 @@ export class TextureSetApp {
       "p",
       "note",
       icon("info"),
-      h("span", "", "MERS requires format_version 1.21.30; it is selected automatically."),
+      h("span", "", "MERS requires format_version 1.21.30, it is selected automatically."),
     );
     this.material = this.exclusiveGroup(
       "material",
@@ -358,7 +358,7 @@ export class TextureSetApp {
     const hadMers = this.config.layers[LayerKey.MERS].enabled;
     this.config.setVersion(version);
     if (hadMers && !this.config.layers[LayerKey.MERS].enabled) {
-      this.showToast(`MERS is not available in ${version}; switched to MER.`);
+      this.showToast(`MERS is not available in ${version}, switched to MER.`);
     }
     this.refresh();
   }
