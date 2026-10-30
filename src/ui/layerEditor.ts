@@ -20,7 +20,6 @@ export const LAYER_LABELS: Record<LayerKey, string> = {
 
 type Mode = "texture" | "color";
 type ColorFormat = "array" | "hex";
-type Channels = "rgb" | "rgba";
 
 function isHexKind(kind: ValueKind): boolean {
   return kind === ValueKind.HEX_RGB || kind === ValueKind.HEX_RGBA;
@@ -30,11 +29,11 @@ function hasAlpha(kind: ValueKind): boolean {
   return kind === ValueKind.RGBA || kind === ValueKind.HEX_RGBA;
 }
 
-function colorKind(format: ColorFormat, channels: Channels): ValueKind {
+function colorKind(format: ColorFormat, alpha: boolean): ValueKind {
   if (format === "hex") {
-    return channels === "rgba" ? ValueKind.HEX_RGBA : ValueKind.HEX_RGB;
+    return alpha ? ValueKind.HEX_RGBA : ValueKind.HEX_RGB;
   }
-  return channels === "rgba" ? ValueKind.RGBA : ValueKind.RGB;
+  return alpha ? ValueKind.RGBA : ValueKind.RGB;
 }
 
 function labeled(label: string, control: HTMLElement): HTMLElement {
@@ -42,7 +41,6 @@ function labeled(label: string, control: HTMLElement): HTMLElement {
 }
 
 const CHANNEL_HINTS: Partial<Record<LayerKey, string>> = {
-  [LayerKey.COLOR]: "Flat color applied to the whole surface.",
   [LayerKey.MER]: "R = metalness · G = emissive · B = roughness",
   [LayerKey.MERS]: "R = metalness · G = emissive · B = roughness · A = subsurface",
 };
@@ -57,9 +55,7 @@ export class LayerEditor {
   private readonly allowedKinds: readonly ValueKind[];
   private readonly modeControl: SegmentedControl<Mode> | null = null;
   private readonly formatControl: SegmentedControl<ColorFormat>;
-  private readonly channelsControl: SegmentedControl<Channels>;
   private readonly formatField: HTMLElement;
-  private readonly channelsField: HTMLElement;
   /** Last color kind used, restored when switching from Texture back to Color. */
   private lastColorKind: ValueKind | null;
   private readonly textPanel: HTMLElement;
@@ -107,31 +103,12 @@ export class LayerEditor {
       ],
       (format) => {
         const current = config.layers[layer].kind;
-        this.applyKind(colorKind(format, hasAlpha(current) ? "rgba" : "rgb"));
-      },
-      "segmented-sm",
-    );
-    this.channelsControl = new SegmentedControl<Channels>(
-      "Channels",
-      [
-        { value: "rgb", label: "RGB" },
-        { value: "rgba", label: "RGBA" },
-      ],
-      (channels) => {
-        const current = config.layers[layer].kind;
-        this.applyKind(colorKind(isHexKind(current) ? "hex" : "array", channels));
+        this.applyKind(colorKind(format, hasAlpha(current)));
       },
       "segmented-sm",
     );
     this.formatField = labeled("JSON format", this.formatControl.element);
-    this.channelsField = labeled("Channels", this.channelsControl.element);
-    // Only the Color layer lets you choose between RGB and RGBA.
-    const alphaChoice =
-      colorKinds.some(hasAlpha) && colorKinds.some((kind) => !hasAlpha(kind));
     toolbar.append(this.formatField);
-    if (alphaChoice) {
-      toolbar.append(this.channelsField);
-    }
     if (toolbar.childElementCount > 0) {
       this.element.append(toolbar);
     }
@@ -183,12 +160,10 @@ export class LayerEditor {
     this.textPanel.hidden = isColor;
     this.colorEditor.element.hidden = !isColor;
     this.formatField.hidden = !isColor;
-    this.channelsField.hidden = !isColor;
 
     if (isColor) {
       this.lastColorKind = layerConfig.kind;
       this.formatControl.setValue(isHexKind(layerConfig.kind) ? "hex" : "array");
-      this.channelsControl.setValue(hasAlpha(layerConfig.kind) ? "rgba" : "rgb");
       this.colorEditor.configure(layerConfig.kind);
       this.colorEditor.setColor(Array.isArray(value) ? value : [255, 255, 255]);
     } else {

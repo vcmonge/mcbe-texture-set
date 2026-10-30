@@ -34,7 +34,6 @@
   --info: #86aefc;
   --info-soft: rgb(134 174 252 / 0.1);
 
-  --dot-color: #e3b35b;
   --dot-relief: #9295ff;
   --dot-material: #4fd1c5;
 
@@ -409,10 +408,6 @@ p code {
   background: var(--surface-2);
 }
 
-.layer-block[data-accent="color"] {
-  --dot: var(--dot-color);
-}
-
 .layer-block[data-accent="relief"] {
   --dot: var(--dot-relief);
 }
@@ -429,7 +424,6 @@ p code {
   padding: 10px 14px;
 }
 
-.layer-block-head > .tag,
 .layer-block-head > .segmented {
   flex-shrink: 0;
 }
@@ -458,15 +452,6 @@ p code {
   color: var(--text-3);
   font-size: 12.5px;
   line-height: 1.35;
-}
-
-.tag {
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--surface-3);
-  color: var(--text-2);
-  font-size: 12px;
-  font-weight: 600;
 }
 
 .layer-block-body {
@@ -910,10 +895,6 @@ kbd {
   .layer-block-head > .segmented .segment {
     flex: 1;
     padding: 4px 8px;
-  }
-
-  .layer-block-head > .tag {
-    align-self: flex-start;
   }
 
   .color-hex-field {

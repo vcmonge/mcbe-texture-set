@@ -50,13 +50,8 @@ export const LAYER_SUFFIXES: Record<LayerKey, string> = {
 };
 
 export const LAYER_VALUE_KINDS: Record<LayerKey, readonly ValueKind[]> = {
-  [LayerKey.COLOR]: [
-    ValueKind.TEXTURE_NAME,
-    ValueKind.RGB,
-    ValueKind.RGBA,
-    ValueKind.HEX_RGB,
-    ValueKind.HEX_RGBA,
-  ],
+  // Color is always the texture the set belongs to: its value is the texture name.
+  [LayerKey.COLOR]: [ValueKind.TEXTURE_NAME],
   [LayerKey.NORMAL]: [ValueKind.TEXTURE_NAME],
   [LayerKey.HEIGHTMAP]: [ValueKind.TEXTURE_NAME],
   [LayerKey.MER]: [ValueKind.TEXTURE_NAME, ValueKind.RGB, ValueKind.HEX_RGB],

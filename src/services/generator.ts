@@ -46,7 +46,9 @@ export function buildTextureSet(config: TextureSetConfig): TextureSetDocument {
   const textureSet: Record<string, string | number[]> = {};
   for (const layer of LAYER_ORDER) {
     const layerConfig = config.layers[layer];
-    if (layerConfig.enabled) {
+    if (layer === LayerKey.COLOR) {
+      textureSet[layer] = config.textureName.trim();
+    } else if (layerConfig.enabled) {
       textureSet[layer] = serializeValue(layerConfig.kind, layerConfig.value());
     }
   }

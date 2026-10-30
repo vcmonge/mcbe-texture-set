@@ -124,7 +124,8 @@ export function validateConfig(config: TextureSetConfig): ValidationError[] {
 
   for (const layer of LAYER_KEYS) {
     const layerConfig = config.layers[layer];
-    if (!layerConfig.enabled) {
+    // The color layer takes the texture name, already validated above.
+    if (!layerConfig.enabled || layer === LayerKey.COLOR) {
       continue;
     }
     if (!LAYER_VALUE_KINDS[layer].includes(layerConfig.kind)) {

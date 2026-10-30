@@ -106,8 +106,11 @@ export class TextureSetApp {
     this.root = root;
     this.config = createDefaultConfig();
 
+    // Color always takes the texture name, so it has no editor.
     for (const layer of LAYER_KEYS) {
-      this.editors.set(layer, new LayerEditor(layer, this.config, () => this.refresh()));
+      if (layer !== LayerKey.COLOR) {
+        this.editors.set(layer, new LayerEditor(layer, this.config, () => this.refresh()));
+      }
     }
 
     // Header
@@ -169,14 +172,6 @@ export class TextureSetApp {
     );
 
     // Step 2: layers
-    const colorBlock = this.layerBlock(
-      "color",
-      "Color",
-      "Base texture or a flat color. Always included.",
-      h("span", "tag", "Required"),
-    );
-    colorBlock.body.append(this.editor(LayerKey.COLOR).element);
-
     this.relief = this.exclusiveGroup(
       "relief",
       "Surface detail",
@@ -205,7 +200,6 @@ export class TextureSetApp {
       h(
         "div",
         "layer-blocks",
-        colorBlock.element,
         this.relief.element,
         this.material.element,
       ),
@@ -446,7 +440,7 @@ export class TextureSetApp {
     if (field === "texture_name") {
       this.nameInput.focus();
     } else if (isLayerKey(field)) {
-      this.editor(field).focus();
+      this.editors.get(field)?.focus();
     }
   }
 
