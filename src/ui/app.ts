@@ -212,6 +212,9 @@ export class TextureSetApp {
     const sectionLayers = document.createElement("section");
     sectionLayers.className = "panel-card";
 
+    const sectionLayersHeader = document.createElement("div");
+    sectionLayersHeader.className = "section-header";
+
     const sectionLayersTitle = document.createElement("h2");
     sectionLayersTitle.className = "section-title";
     sectionLayersTitle.textContent = "2. Capas PBR";
@@ -220,6 +223,8 @@ export class TextureSetApp {
     layersHelp.className = "section-help";
     layersHelp.textContent =
       "Color es obligatorio. Normal y Mapa de alturas son mutuamente excluyentes, al igual que MER y MERS.";
+
+    sectionLayersHeader.append(sectionLayersTitle, layersHelp);
 
     const layersList = document.createElement("div");
     layersList.className = "layers-list";
@@ -232,7 +237,7 @@ export class TextureSetApp {
       layersList.append(row.element);
     }
 
-    sectionLayers.append(sectionLayersTitle, layersHelp, layersList);
+    sectionLayers.append(sectionLayersHeader, layersList);
     configColumn.append(sectionTexture, sectionLayers);
 
     // Section 3: Vista previa y salida (Sticky right panel)
