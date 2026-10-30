@@ -393,7 +393,7 @@ export class TextureSetApp {
     } else if (name) {
       this.nameHint.replaceChildren(
         "Layer prefix, e.g. ",
-        h("code", "", `${name}_normal`),
+        h("code", "", `${name}_n`),
         ".",
       );
     } else {

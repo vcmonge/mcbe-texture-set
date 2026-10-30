@@ -43,8 +43,8 @@ export type LayerValue = string | ColorValue;
 
 export const LAYER_SUFFIXES: Record<LayerKey, string> = {
   [LayerKey.COLOR]: "",
-  [LayerKey.NORMAL]: "_normal",
-  [LayerKey.HEIGHTMAP]: "_heightmap",
+  [LayerKey.NORMAL]: "_n",
+  [LayerKey.HEIGHTMAP]: "_h",
   [LayerKey.MER]: "_mer",
   [LayerKey.MERS]: "_mers",
 };
