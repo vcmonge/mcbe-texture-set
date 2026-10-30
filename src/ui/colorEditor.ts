@@ -18,7 +18,7 @@ function channelsForKind(kind: ValueKind): 3 | 4 {
   return kind === ValueKind.RGBA || kind === ValueKind.HEX_RGBA ? 4 : 3;
 }
 
-/** Acepta #rgb, #rgba, #rrggbb y #rrggbbaa (con o sin #). */
+/** Accepts #rgb, #rgba, #rrggbb and #rrggbbaa (with or without #). */
 function parseHex(text: string): number[] | null {
   const raw = text.trim().replace(/^#/, "");
   if (!/^[0-9a-f]+$/i.test(raw)) {
@@ -61,7 +61,7 @@ export class ColorEditor {
     this.swatchFill = h("span", "color-swatch-fill");
     this.nativeInput = h("input", "color-swatch-input");
     this.nativeInput.type = "color";
-    this.nativeInput.setAttribute("aria-label", "Abrir selector de color");
+    this.nativeInput.setAttribute("aria-label", "Open color picker");
     this.nativeInput.addEventListener("input", () => {
       const parsed = parseHex(this.nativeInput.value);
       if (!parsed) {
@@ -72,14 +72,14 @@ export class ColorEditor {
       this.emit();
     });
     const swatch = h("label", "color-swatch", this.swatchFill, this.nativeInput);
-    swatch.title = "Abrir selector de color";
+    swatch.title = "Open color picker";
 
     this.hexInput = h("input", "text-input color-hex-input mono");
     this.hexInput.type = "text";
     this.hexInput.maxLength = 9;
     this.hexInput.spellcheck = false;
     this.hexInput.autocomplete = "off";
-    this.hexInput.setAttribute("aria-label", "Color hexadecimal");
+    this.hexInput.setAttribute("aria-label", "Hex color");
     this.hexInput.addEventListener("input", () => {
       this.handleHexInput();
     });
@@ -96,7 +96,7 @@ export class ColorEditor {
       input.max = "255";
       input.step = "1";
       input.inputMode = "numeric";
-      input.setAttribute("aria-label", `Canal ${name}`);
+      input.setAttribute("aria-label", `${name} channel`);
       input.addEventListener("input", () => {
         if (input.value === "") {
           return;
@@ -163,7 +163,7 @@ export class ColorEditor {
     this.onChange(this.color.slice(0, this.channels));
   }
 
-  /** Sincroniza todos los campos excepto el que el usuario está editando. */
+  /** Syncs every field except the one the user is editing. */
   private render(): void {
     const [r = 255, g = 255, b = 255, a = 255] = this.color;
     const rgbHex = `#${toHexByte(r)}${toHexByte(g)}${toHexByte(b)}`;

@@ -1,6 +1,6 @@
 /*
- * Generador de Texture Sets — tema oscuro.
- * Superficies planas, bordes de 1px y un único color de acento (verde Bedrock).
+ * Texture Set Generator — dark theme.
+ * Flat surfaces, 1px borders and a single accent color (Bedrock green).
  */
 
 /* ==========================================================================
@@ -126,26 +126,7 @@ p code {
 }
 
 .app-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
   margin-bottom: 28px;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-width: 0;
-}
-
-.brand-logo {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-sm);
-  image-rendering: pixelated;
-  flex-shrink: 0;
 }
 
 .brand-title {
@@ -156,17 +137,6 @@ p code {
 
 .brand-subtitle {
   color: var(--text-3);
-}
-
-.platform-tag {
-  flex-shrink: 0;
-  padding: 4px 10px;
-  border: 1px solid var(--accent-line);
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-size: 12px;
-  font-weight: 600;
 }
 
 .layout {
@@ -378,7 +348,7 @@ p code {
   font-weight: 400;
 }
 
-/* Variante en tarjetas: versión de formato */
+/* Card variant: format version */
 .segmented-cards {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -413,7 +383,7 @@ p code {
   color: var(--accent);
 }
 
-/* Variante pequeña: tipo de valor */
+/* Small variant: value kind */
 .segmented-sm .segment {
   min-height: 26px;
   padding: 2px 10px;
@@ -914,14 +884,6 @@ kbd {
 @media (max-width: 640px) {
   .app {
     padding: 20px 16px 48px;
-  }
-
-  .app-header {
-    align-items: flex-start;
-  }
-
-  .platform-tag {
-    display: none;
   }
 
   .card {

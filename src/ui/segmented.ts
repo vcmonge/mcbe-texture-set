@@ -6,7 +6,7 @@ export interface SegmentOption<T extends string> {
   hint?: string;
 }
 
-/** Grupo de botones excluyentes con semántica y teclado de radiogroup. */
+/** Mutually exclusive button group with radiogroup semantics and keyboard support. */
 export class SegmentedControl<T extends string> {
   readonly element: HTMLElement;
 

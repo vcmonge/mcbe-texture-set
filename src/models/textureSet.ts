@@ -217,7 +217,7 @@ export class TextureSetConfig {
 
   setLayerKind(layer: LayerKey, kind: ValueKind): void {
     if (!LAYER_VALUE_KINDS[layer].includes(kind)) {
-      throw new Error(`${kind} no es válido para ${layer}.`);
+      throw new Error(`${kind} is not valid for ${layer}.`);
     }
     this.layers[layer].kind = kind;
   }

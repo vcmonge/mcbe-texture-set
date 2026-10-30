@@ -3,7 +3,7 @@ import { h } from "./dom";
 const TOKEN =
   /("(?:\\.|[^"\\])*")(\s*:)?|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|([{}[\],])/g;
 
-/** Pinta JSON con resaltado de sintaxis usando solo nodos de texto. */
+/** Renders syntax-highlighted JSON using text nodes only. */
 export function renderJson(target: HTMLElement, json: string): void {
   const fragment = document.createDocumentFragment();
   let last = 0;

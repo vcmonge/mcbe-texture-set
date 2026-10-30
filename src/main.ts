@@ -3,7 +3,7 @@ import { mountApp } from "./ui/app";
 
 const root = document.querySelector<HTMLElement>("#app");
 if (!root) {
-  throw new Error("No se encontró el contenedor #app.");
+  throw new Error("Container #app not found.");
 }
 
 mountApp(root);

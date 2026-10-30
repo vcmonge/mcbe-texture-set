@@ -50,7 +50,7 @@ function formatPreviewLayerValue(kind: ValueKind, value: LayerValue): string | n
   );
 }
 
-/** JSON final si la configuración es válida; si no, una aproximación para la vista previa. */
+/** Final JSON when the config is valid; otherwise an approximation for the preview. */
 function renderLivePreviewJson(config: TextureSetConfig): string {
   try {
     return serializeTextureSet(config).trimEnd();
@@ -110,33 +110,19 @@ export class TextureSetApp {
       this.editors.set(layer, new LayerEditor(layer, this.config, () => this.refresh()));
     }
 
-    // Cabecera
-    const logo = h("img", "brand-logo");
-    logo.src = "./favicon.png";
-    logo.alt = "";
-    logo.addEventListener("error", () => logo.remove());
+    // Header
     const header = h(
       "header",
       "app-header",
+      h("h1", "brand-title", "Texture Set Generator"),
       h(
-        "div",
-        "brand",
-        logo,
-        h(
-          "div",
-          "",
-          h("h1", "brand-title", "Generador de Texture Sets"),
-          h(
-            "p",
-            "brand-subtitle",
-            "Configura las capas PBR de tu textura y descarga el texture_set.json para tu resource pack.",
-          ),
-        ),
+        "p",
+        "brand-subtitle",
+        "Set up the PBR layers for your texture and download a texture_set.json for your resource pack.",
       ),
-      h("span", "platform-tag", "Minecraft Bedrock"),
     );
 
-    // Paso 1: nombre y versión
+    // Step 1: name and version
     this.nameInput = h("input", "text-input input-lg mono");
     this.nameInput.id = "texture-name";
     this.nameInput.type = "text";
@@ -152,14 +138,14 @@ export class TextureSetApp {
     this.nameHint = h("p", "field-hint");
     this.nameHint.id = "texture-name-hint";
 
-    const nameLabel = h("label", "field-label", "Nombre de la textura");
+    const nameLabel = h("label", "field-label", "Texture name");
     nameLabel.htmlFor = this.nameInput.id;
 
     this.versionControl = new SegmentedControl(
       "format_version",
       [
-        { value: FormatVersion.V1_21_30, label: "1.21.30", hint: "Recomendada · admite MERS" },
-        { value: FormatVersion.V1_16_100, label: "1.16.100", hint: "Clásica · solo MER" },
+        { value: FormatVersion.V1_21_30, label: "1.21.30", hint: "Recommended · supports MERS" },
+        { value: FormatVersion.V1_16_100, label: "1.16.100", hint: "Legacy · MER only" },
       ],
       (version) => this.handleVersionSelected(version),
       "segmented-cards",
@@ -167,8 +153,8 @@ export class TextureSetApp {
 
     const stepTexture = this.card(
       "1",
-      "Textura",
-      "Nombre base del archivo y versión del formato.",
+      "Texture",
+      "Base file name and format version.",
       h(
         "div",
         "basics-grid",
@@ -182,19 +168,19 @@ export class TextureSetApp {
       ),
     );
 
-    // Paso 2: capas
+    // Step 2: layers
     const colorBlock = this.layerBlock(
       "color",
       "Color",
-      "Textura base o un color plano. Siempre se incluye.",
-      h("span", "tag", "Obligatoria"),
+      "Base texture or a flat color. Always included.",
+      h("span", "tag", "Required"),
     );
     colorBlock.body.append(this.editor(LayerKey.COLOR).element);
 
     this.relief = this.exclusiveGroup(
       "relief",
-      "Relieve",
-      "Da profundidad a la superficie con un mapa de normales o de alturas.",
+      "Surface detail",
+      "Adds depth to the surface with a normal map or a heightmap.",
       [LayerKey.NORMAL, LayerKey.HEIGHTMAP],
     );
 
@@ -202,20 +188,20 @@ export class TextureSetApp {
       "p",
       "note",
       icon("info"),
-      h("span", "", "MERS requiere format_version 1.21.30; se selecciona automáticamente."),
+      h("span", "", "MERS requires format_version 1.21.30; it is selected automatically."),
     );
     this.material = this.exclusiveGroup(
       "material",
       "Material",
-      "Metalness, emisión y rugosidad. MERS añade subsurface scattering.",
+      "Metalness, emissive and roughness. MERS adds subsurface scattering.",
       [LayerKey.MER, LayerKey.MERS],
     );
     this.material.body.append(this.mersNote);
 
     const stepLayers = this.card(
       "2",
-      "Capas",
-      "Activa solo las que vayas a usar.",
+      "Layers",
+      "Enable only the ones you need.",
       h(
         "div",
         "layer-blocks",
@@ -225,13 +211,13 @@ export class TextureSetApp {
       ),
     );
 
-    // Resultado
+    // Output
     this.filenameElement = h("code", "filename-text");
     this.jsonCode = h("code", "");
     this.statusElement = h("div", "status");
     this.statusElement.setAttribute("aria-live", "polite");
 
-    this.downloadButton = h("button", "btn btn-primary", icon("download"), "Descargar");
+    this.downloadButton = h("button", "btn btn-primary", icon("download"), "Download");
     this.downloadButton.type = "button";
     this.downloadButton.addEventListener("click", () => this.handleDownload());
 
@@ -249,7 +235,7 @@ export class TextureSetApp {
         h(
           "div",
           "output-head",
-          h("span", "eyebrow", "Resultado"),
+          h("span", "eyebrow", "Output"),
           h("div", "filename", icon("file"), this.filenameElement),
         ),
         h("pre", "json-view", this.jsonCode),
@@ -261,7 +247,7 @@ export class TextureSetApp {
           h("kbd", "", "Ctrl"),
           " + ",
           h("kbd", "", "S"),
-          " para descargar",
+          " to download",
         ),
       ),
     );
@@ -292,7 +278,7 @@ export class TextureSetApp {
   private editor(layer: LayerKey): LayerEditor {
     const editor = this.editors.get(layer);
     if (!editor) {
-      throw new Error(`No existe editor para ${layer}.`);
+      throw new Error(`No editor for ${layer}.`);
     }
     return editor;
   }
@@ -347,7 +333,7 @@ export class TextureSetApp {
     const control = new SegmentedControl<Choice>(
       title,
       [
-        { value: "none", label: "Ninguno" },
+        { value: "none", label: "None" },
         ...options.map((layer) => ({ value: layer, label: LAYER_LABELS[layer] })),
       ],
       (choice) => this.handleGroupSelected(options, choice),
@@ -369,7 +355,7 @@ export class TextureSetApp {
       this.config.setLayerEnabled(choice, true);
     }
     if (this.config.version !== previousVersion) {
-      this.showToast(`format_version cambiada a ${this.config.version} para usar MERS.`);
+      this.showToast(`format_version switched to ${this.config.version} to use MERS.`);
     }
     this.refresh();
   }
@@ -378,7 +364,7 @@ export class TextureSetApp {
     const hadMers = this.config.layers[LayerKey.MERS].enabled;
     this.config.setVersion(version);
     if (hadMers && !this.config.layers[LayerKey.MERS].enabled) {
-      this.showToast(`MERS no existe en ${version}; se cambió a MER.`);
+      this.showToast(`MERS is not available in ${version}; switched to MER.`);
     }
     this.refresh();
   }
@@ -398,7 +384,7 @@ export class TextureSetApp {
     }
     this.mersNote.hidden = !this.config.layers[LayerKey.MERS].enabled;
 
-    // Los errores de capa derivados de un nombre vacío no aportan nada hasta que haya nombre.
+    // Layer errors caused by an empty name add nothing until a name is entered.
     for (const [layer, editor] of this.editors) {
       const error = name ? errors.find((err) => err.field === layer) : undefined;
       editor.refresh(error ? friendlyMessage(error) : undefined);
@@ -412,15 +398,15 @@ export class TextureSetApp {
       this.nameHint.textContent = nameError.message;
     } else if (name) {
       this.nameHint.replaceChildren(
-        "Prefijo de las capas, p. ej. ",
+        "Layer prefix, e.g. ",
         h("code", "", `${name}_normal`),
         ".",
       );
     } else {
-      this.nameHint.textContent = "El nombre del archivo de imagen base, sin extensión.";
+      this.nameHint.textContent = "File name of the base image, without extension.";
     }
 
-    this.filenameElement.textContent = name ? outputFilename(name) : "nombre.texture_set.json";
+    this.filenameElement.textContent = name ? outputFilename(name) : "name.texture_set.json";
     this.filenameElement.classList.toggle("is-placeholder", !name);
     renderJson(this.jsonCode, renderLivePreviewJson(this.config));
 
@@ -433,14 +419,14 @@ export class TextureSetApp {
   private renderStatus(errors: readonly ValidationError[], name: string): void {
     if (errors.length === 0) {
       this.statusElement.className = "status status-ok";
-      this.statusElement.replaceChildren(icon("check"), h("span", "", "Listo para descargar"));
+      this.statusElement.replaceChildren(icon("check"), h("span", "", "Ready to download"));
       return;
     }
     if (!name && !this.nameTouched) {
       this.statusElement.className = "status status-neutral";
       this.statusElement.replaceChildren(
         icon("info"),
-        h("span", "", "Escribe un nombre de textura para empezar."),
+        h("span", "", "Enter a texture name to get started."),
       );
       return;
     }
@@ -467,7 +453,7 @@ export class TextureSetApp {
   private setCopyLabel(copied: boolean): void {
     this.copyButton.replaceChildren(
       icon(copied ? "check" : "copy"),
-      copied ? "Copiado" : "Copiar JSON",
+      copied ? "Copied" : "Copy JSON",
     );
   }
 
@@ -486,7 +472,7 @@ export class TextureSetApp {
         this.copyResetTimer = null;
       }, 1500);
     } catch {
-      this.showToast("No se pudo copiar al portapapeles.", true);
+      this.showToast("Could not copy to clipboard.", true);
     }
   }
 
@@ -503,14 +489,14 @@ export class TextureSetApp {
     }
     try {
       const filename = downloadTextureSet(this.config);
-      this.showToast(`Descargado ${filename}`);
+      this.showToast(`Downloaded ${filename}`);
     } catch (error) {
       const message =
         error instanceof ConfigurationInvalid
           ? (error.errors[0]?.message ?? error.message)
           : error instanceof Error
             ? error.message
-            : "No se pudo generar el archivo.";
+            : "Could not generate the file.";
       this.showToast(message, true);
     }
   }

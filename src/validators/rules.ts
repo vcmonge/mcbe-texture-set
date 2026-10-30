@@ -52,19 +52,19 @@ export class ConfigurationInvalid extends Error {
 export function validateTextureName(textureName: string): ValidationError[] {
   const name = textureName.trim();
   if (!name) {
-    return [{ field: "texture_name", message: "El nombre de la textura no puede estar vacío." }];
+    return [{ field: "texture_name", message: "Texture name cannot be empty." }];
   }
   if (WINDOWS_INVALID_FILENAME.test(name) || name.endsWith(".") || name.endsWith(" ")) {
     return [
       {
         field: "texture_name",
-        message: "El nombre contiene caracteres no válidos para un archivo de Windows.",
+        message: "The name contains characters that are not valid in a Windows file name.",
       },
     ];
   }
   const baseName = name.toUpperCase().split(".")[0] ?? "";
   if (WINDOWS_RESERVED_NAMES.has(baseName)) {
-    return [{ field: "texture_name", message: "El nombre de archivo está reservado por Windows." }];
+    return [{ field: "texture_name", message: "This file name is reserved by Windows." }];
   }
   return [];
 }
@@ -73,7 +73,7 @@ function validateValue(layer: LayerKey, kind: ValueKind, value: unknown): Valida
   const field = layer;
   if (kind === ValueKind.TEXTURE_NAME) {
     if (typeof value !== "string" || !value.trim()) {
-      return [{ field, message: `${layer} debe tener un nombre de textura.` }];
+      return [{ field, message: `${layer} must have a texture name.` }];
     }
     return [];
   }
@@ -81,7 +81,7 @@ function validateValue(layer: LayerKey, kind: ValueKind, value: unknown): Valida
   const expectedChannels = kind === ValueKind.RGB || kind === ValueKind.HEX_RGB ? 3 : 4;
   if (!Array.isArray(value) || value.length !== expectedChannels) {
     const label = expectedChannels === 3 ? "RGB" : "RGBA";
-    return [{ field, message: `${layer} debe contener un color ${label} válido.` }];
+    return [{ field, message: `${layer} must contain a valid ${label} color.` }];
   }
   if (
     value.some(
@@ -92,7 +92,7 @@ function validateValue(layer: LayerKey, kind: ValueKind, value: unknown): Valida
         component > 255,
     )
   ) {
-    return [{ field, message: `Cada canal de ${layer} debe ser un entero entre 0 y 255.` }];
+    return [{ field, message: `Each ${layer} channel must be an integer between 0 and 255.` }];
   }
   return [];
 }
@@ -100,12 +100,12 @@ function validateValue(layer: LayerKey, kind: ValueKind, value: unknown): Valida
 export function validateConfig(config: TextureSetConfig): ValidationError[] {
   const errors = validateTextureName(config.textureName);
   if (!FORMAT_VERSIONS.includes(config.version)) {
-    errors.push({ field: "version", message: "La versión de formato no es compatible." });
+    errors.push({ field: "version", message: "Unsupported format version." });
   }
 
   const color = config.layers[LayerKey.COLOR];
   if (!color.enabled) {
-    errors.push({ field: "color", message: "La capa color es obligatoria." });
+    errors.push({ field: "color", message: "The color layer is required." });
   }
 
   const normal = config.layers[LayerKey.NORMAL];
@@ -113,13 +113,13 @@ export function validateConfig(config: TextureSetConfig): ValidationError[] {
   const mer = config.layers[LayerKey.MER];
   const mers = config.layers[LayerKey.MERS];
   if (normal.enabled && heightmap.enabled) {
-    errors.push({ field: "relief", message: "normal y heightmap no pueden coexistir." });
+    errors.push({ field: "relief", message: "Normal map and heightmap cannot be used together." });
   }
   if (mer.enabled && mers.enabled) {
-    errors.push({ field: "materials", message: "MER y MERS no pueden coexistir." });
+    errors.push({ field: "materials", message: "MER and MERS cannot be used together." });
   }
   if (mers.enabled && config.version !== FormatVersion.V1_21_30) {
-    errors.push({ field: "mers", message: "MERS requiere la versión 1.21.30." });
+    errors.push({ field: "mers", message: "MERS requires format version 1.21.30." });
   }
 
   for (const layer of LAYER_KEYS) {
@@ -128,7 +128,7 @@ export function validateConfig(config: TextureSetConfig): ValidationError[] {
       continue;
     }
     if (!LAYER_VALUE_KINDS[layer].includes(layerConfig.kind)) {
-      errors.push({ field: layer, message: "El tipo de valor no es compatible con esta capa." });
+      errors.push({ field: layer, message: "This value kind is not supported by this layer." });
       continue;
     }
     errors.push(...validateValue(layer, layerConfig.kind, layerConfig.value()));

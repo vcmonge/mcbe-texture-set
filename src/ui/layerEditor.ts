@@ -12,8 +12,8 @@ import { SegmentedControl } from "./segmented";
 
 export const LAYER_LABELS: Record<LayerKey, string> = {
   [LayerKey.COLOR]: "Color",
-  [LayerKey.NORMAL]: "Normal",
-  [LayerKey.HEIGHTMAP]: "Mapa de alturas",
+  [LayerKey.NORMAL]: "Normal map",
+  [LayerKey.HEIGHTMAP]: "Heightmap",
   [LayerKey.MER]: "MER",
   [LayerKey.MERS]: "MERS",
 };
@@ -42,12 +42,12 @@ function labeled(label: string, control: HTMLElement): HTMLElement {
 }
 
 const CHANNEL_HINTS: Partial<Record<LayerKey, string>> = {
-  [LayerKey.COLOR]: "Color plano aplicado a toda la superficie.",
+  [LayerKey.COLOR]: "Flat color applied to the whole surface.",
   [LayerKey.MER]: "R = metalness · G = emissive · B = roughness",
   [LayerKey.MERS]: "R = metalness · G = emissive · B = roughness · A = subsurface",
 };
 
-/** Editor del valor de una capa: nombre de textura o color. */
+/** Editor for a layer value: texture name or color. */
 export class LayerEditor {
   readonly element: HTMLElement;
 
@@ -60,7 +60,7 @@ export class LayerEditor {
   private readonly channelsControl: SegmentedControl<Channels>;
   private readonly formatField: HTMLElement;
   private readonly channelsField: HTMLElement;
-  /** Último tipo de color usado, para volver a él al pasar de Textura a Color. */
+  /** Last color kind used, restored when switching from Texture back to Color. */
   private lastColorKind: ValueKind | null;
   private readonly textPanel: HTMLElement;
   private readonly textInput: HTMLInputElement;
@@ -83,9 +83,9 @@ export class LayerEditor {
     const toolbar = h("div", "layer-toolbar");
     if (colorKinds.length > 0) {
       this.modeControl = new SegmentedControl<Mode>(
-        `Valor de ${LAYER_LABELS[layer]}`,
+        `${LAYER_LABELS[layer]} value`,
         [
-          { value: "texture", label: "Textura" },
+          { value: "texture", label: "Texture" },
           { value: "color", label: "Color" },
         ],
         (mode) => {
@@ -100,7 +100,7 @@ export class LayerEditor {
     }
 
     this.formatControl = new SegmentedControl<ColorFormat>(
-      "Formato en el JSON",
+      "JSON format",
       [
         { value: "array", label: "Array" },
         { value: "hex", label: "Hex" },
@@ -112,7 +112,7 @@ export class LayerEditor {
       "segmented-sm",
     );
     this.channelsControl = new SegmentedControl<Channels>(
-      "Canales",
+      "Channels",
       [
         { value: "rgb", label: "RGB" },
         { value: "rgba", label: "RGBA" },
@@ -123,9 +123,9 @@ export class LayerEditor {
       },
       "segmented-sm",
     );
-    this.formatField = labeled("Formato en el JSON", this.formatControl.element);
-    this.channelsField = labeled("Canales", this.channelsControl.element);
-    // Solo la capa Color admite elegir entre RGB y RGBA.
+    this.formatField = labeled("JSON format", this.formatControl.element);
+    this.channelsField = labeled("Channels", this.channelsControl.element);
+    // Only the Color layer lets you choose between RGB and RGBA.
     const alphaChoice =
       colorKinds.some(hasAlpha) && colorKinds.some((kind) => !hasAlpha(kind));
     toolbar.append(this.formatField);
@@ -140,8 +140,8 @@ export class LayerEditor {
     this.textInput.type = "text";
     this.textInput.autocomplete = "off";
     this.textInput.spellcheck = false;
-    this.textInput.placeholder = "nombre_de_archivo";
-    this.textInput.setAttribute("aria-label", `Textura de ${LAYER_LABELS[layer]}`);
+    this.textInput.placeholder = "file_name";
+    this.textInput.setAttribute("aria-label", `${LAYER_LABELS[layer]} texture`);
     this.textInput.addEventListener("input", () => {
       config.layers[layer].setValue(this.textInput.value);
       onChange();
@@ -149,8 +149,8 @@ export class LayerEditor {
 
     this.resetButton = h("button", "icon-button", icon("reset"));
     this.resetButton.type = "button";
-    this.resetButton.title = "Usar el nombre sugerido";
-    this.resetButton.setAttribute("aria-label", "Usar el nombre sugerido");
+    this.resetButton.title = "Use the suggested name";
+    this.resetButton.setAttribute("aria-label", "Use the suggested name");
     this.resetButton.addEventListener("click", () => {
       config.layers[layer].setValue(suggestedValue(config.textureName, layer));
       onChange();
@@ -201,14 +201,14 @@ export class LayerEditor {
       const file = text.trim();
       if (file) {
         this.fileHint.replaceChildren(
-          "Imagen esperada: ",
+          "Expected image: ",
           h("code", "", `${file}.png`),
-          " o ",
+          " or ",
           h("code", "", ".tga"),
-          ", en la misma carpeta.",
+          ", in the same folder.",
         );
       } else {
-        this.fileHint.textContent = "Nombre del archivo de imagen, sin extensión.";
+        this.fileHint.textContent = "Image file name, without extension.";
       }
     }
 
@@ -217,7 +217,7 @@ export class LayerEditor {
     this.textInput.classList.toggle("is-invalid", Boolean(error) && !isColor);
   }
 
-  /** Cambia el tipo de valor conservando el color al pasar entre formatos de color. */
+  /** Changes the value kind, keeping the color when switching between color formats. */
   private applyKind(kind: ValueKind): void {
     if (!this.allowedKinds.includes(kind)) {
       return;
