@@ -1,4 +1,5 @@
 import { type ColorValue, ValueKind } from "../models/textureSet";
+import { h } from "./dom";
 
 const CHANNEL_NAMES = ["R", "G", "B", "A"] as const;
 
@@ -17,205 +18,166 @@ function channelsForKind(kind: ValueKind): 3 | 4 {
   return kind === ValueKind.RGBA || kind === ValueKind.HEX_RGBA ? 4 : 3;
 }
 
+/** Acepta #rgb, #rgba, #rrggbb y #rrggbbaa (con o sin #). */
+function parseHex(text: string): number[] | null {
+  const raw = text.trim().replace(/^#/, "");
+  if (!/^[0-9a-f]+$/i.test(raw)) {
+    return null;
+  }
+  const digits =
+    raw.length === 3 || raw.length === 4
+      ? [...raw].map((digit) => digit + digit).join("")
+      : raw;
+  if (digits.length !== 6 && digits.length !== 8) {
+    return null;
+  }
+  const channels: number[] = [];
+  for (let i = 0; i < digits.length; i += 2) {
+    channels.push(Number.parseInt(digits.slice(i, i + 2), 16));
+  }
+  return channels;
+}
+
+function isFocused(element: HTMLElement): boolean {
+  return document.activeElement === element;
+}
+
 export class ColorEditor {
   readonly element: HTMLElement;
 
   private readonly onChange: (color: ColorValue) => void;
-  private readonly colorInput: HTMLInputElement;
-  private readonly swatchIndicator: HTMLElement;
-  private readonly paletteButton: HTMLButtonElement;
-  private readonly channelGroups: HTMLElement[] = [];
+  private readonly swatchFill: HTMLElement;
+  private readonly nativeInput: HTMLInputElement;
+  private readonly hexInput: HTMLInputElement;
+  private readonly channelFields: HTMLElement[] = [];
   private readonly channelInputs: HTMLInputElement[] = [];
-  private readonly hexPreview: HTMLElement;
 
   private channels: 3 | 4 = 3;
-  private kind: ValueKind = ValueKind.RGB;
-  private syncing = false;
+  private readonly color = [255, 255, 255, 255];
 
-  constructor(onChange: (color: ColorValue) => void) {
+  constructor(onChange: (color: ColorValue) => void, channelHint = "") {
     this.onChange = onChange;
 
-    this.element = document.createElement("div");
-    this.element.className = "color-editor";
+    this.swatchFill = h("span", "color-swatch-fill");
+    this.nativeInput = h("input", "color-swatch-input");
+    this.nativeInput.type = "color";
+    this.nativeInput.setAttribute("aria-label", "Abrir selector de color");
+    this.nativeInput.addEventListener("input", () => {
+      const parsed = parseHex(this.nativeInput.value);
+      if (!parsed) {
+        return;
+      }
+      this.color.splice(0, 3, ...parsed.slice(0, 3));
+      this.render();
+      this.emit();
+    });
+    const swatch = h("label", "color-swatch", this.swatchFill, this.nativeInput);
+    swatch.title = "Abrir selector de color";
 
-    const pickerGroup = document.createElement("div");
-    pickerGroup.className = "color-picker-group";
-
-    this.colorInput = document.createElement("input");
-    this.colorInput.type = "color";
-    this.colorInput.className = "color-native-input";
-    this.colorInput.value = "#ffffff";
-    this.colorInput.setAttribute("aria-label", "Selector de color RGB");
-    this.colorInput.addEventListener("input", () => {
-      this.handleNativeColorInput();
+    this.hexInput = h("input", "text-input color-hex-input mono");
+    this.hexInput.type = "text";
+    this.hexInput.maxLength = 9;
+    this.hexInput.spellcheck = false;
+    this.hexInput.autocomplete = "off";
+    this.hexInput.setAttribute("aria-label", "Color hexadecimal");
+    this.hexInput.addEventListener("input", () => {
+      this.handleHexInput();
+    });
+    this.hexInput.addEventListener("blur", () => {
+      this.hexInput.classList.remove("is-invalid");
+      this.render();
     });
 
-    this.paletteButton = document.createElement("button");
-    this.paletteButton.type = "button";
-    this.paletteButton.className = "btn btn-color-picker";
-    this.paletteButton.title = "Abrir selector de color RGB";
-
-    this.swatchIndicator = document.createElement("span");
-    this.swatchIndicator.className = "color-swatch";
-    this.swatchIndicator.setAttribute("aria-hidden", "true");
-
-    const buttonLabel = document.createElement("span");
-    buttonLabel.textContent = "Elegir color…";
-
-    this.paletteButton.append(this.swatchIndicator, buttonLabel);
-    this.paletteButton.addEventListener("click", () => {
-      this.openPalette();
-    });
-
-    pickerGroup.append(this.colorInput, this.paletteButton);
-
-    const channelsContainer = document.createElement("div");
-    channelsContainer.className = "color-channels";
-
-    for (const channel of CHANNEL_NAMES) {
-      const group = document.createElement("label");
-      group.className = "channel-field";
-
-      const tag = document.createElement("span");
-      tag.className = "channel-label";
-      tag.textContent = channel;
-
-      const input = document.createElement("input");
+    const channelsRow = h("div", "color-channels");
+    for (const [index, name] of CHANNEL_NAMES.entries()) {
+      const input = h("input", "text-input channel-input mono");
       input.type = "number";
       input.min = "0";
       input.max = "255";
       input.step = "1";
-      input.value = "255";
       input.inputMode = "numeric";
-      input.className = "channel-input";
-      input.setAttribute("aria-label", `Canal ${channel}`);
-
+      input.setAttribute("aria-label", `Canal ${name}`);
       input.addEventListener("input", () => {
-        this.handleChannelInput();
+        if (input.value === "") {
+          return;
+        }
+        this.color[index] = clampChannel(Number(input.value));
+        this.render();
+        this.emit();
+      });
+      input.addEventListener("blur", () => {
+        input.value = String(this.color[index]);
       });
 
-      input.addEventListener("change", () => {
-        const sanitized = clampChannel( Number(input.value) );
-        input.value = String(sanitized);
-        this.handleChannelInput();
-      });
-
-      group.append(tag, input);
-      channelsContainer.append(group);
-      this.channelGroups.push(group);
+      const field = h("label", "channel-field", h("span", "channel-label", name), input);
+      channelsRow.append(field);
+      this.channelFields.push(field);
       this.channelInputs.push(input);
     }
 
-    this.hexPreview = document.createElement("code");
-    this.hexPreview.className = "hex-preview";
-    this.hexPreview.title = "Representación hexadecimal actual";
-    this.hexPreview.textContent = "#ffffff";
-
-    this.element.append(pickerGroup, channelsContainer, this.hexPreview);
-    this.configure(ValueKind.RGB);
+    const hexField = h("div", "color-hex-field", this.hexInput);
+    this.element = h(
+      "div",
+      "color-editor",
+      h("div", "color-editor-row", swatch, hexField, channelsRow),
+    );
+    if (channelHint) {
+      this.element.append(h("p", "field-hint", channelHint));
+    }
+    this.render();
   }
 
   configure(kind: ValueKind): void {
-    this.kind = kind;
-    this.channels = channelsForKind(this.kind);
-
-    const alphaGroup = this.channelGroups[3];
-    if (alphaGroup) {
-      const showAlpha = this.channels === 4;
-      alphaGroup.hidden = !showAlpha;
-      alphaGroup.classList.toggle("hidden", !showAlpha);
+    this.channels = channelsForKind(kind);
+    const alphaField = this.channelFields[3];
+    if (alphaField) {
+      alphaField.hidden = this.channels !== 4;
     }
-
-    const isHex =
-      this.kind === ValueKind.HEX_RGB || this.kind === ValueKind.HEX_RGBA;
-    this.hexPreview.classList.toggle("hex-preview-active", isHex);
-
-    this.updatePreview();
-  }
-
-  getColor(): ColorValue {
-    const r = clampChannel(Number(this.channelInputs[0]?.value ?? 255));
-    const g = clampChannel(Number(this.channelInputs[1]?.value ?? 255));
-    const b = clampChannel(Number(this.channelInputs[2]?.value ?? 255));
-    if (this.channels === 4) {
-      const a = clampChannel(Number(this.channelInputs[3]?.value ?? 255));
-      return [r, g, b, a];
-    }
-    return [r, g, b];
+    this.render();
   }
 
   setColor(value: ColorValue): void {
-    this.syncing = true;
-    try {
-      for (let i = 0; i < 4; i += 1) {
-        const raw = i < value.length ? value[i] : 255;
-        const channelValue = clampChannel(raw ?? 255);
-        const input = this.channelInputs[i];
-        if (input) {
-          input.value = String(channelValue);
-        }
-      }
-    } finally {
-      this.syncing = false;
+    for (let i = 0; i < 4; i += 1) {
+      this.color[i] = clampChannel(value[i] ?? 255);
     }
-    this.updatePreview();
+    this.render();
   }
 
-  openPalette(): void {
-    this.colorInput.focus();
-    if (typeof this.colorInput.showPicker === "function") {
-      try {
-        this.colorInput.showPicker();
-        return;
-      } catch {
-        // Fallback when showPicker requires direct gesture or is unsupported
-      }
-    }
-    this.colorInput.click();
+  focus(): void {
+    this.hexInput.focus();
   }
 
-  private handleNativeColorInput(): void {
-    const rawHex = this.colorInput.value;
-    if (!/^#[0-9a-fA-F]{6}$/.test(rawHex)) {
+  private handleHexInput(): void {
+    const parsed = parseHex(this.hexInput.value);
+    this.hexInput.classList.toggle("is-invalid", parsed === null);
+    if (!parsed) {
       return;
     }
-    const r = Number.parseInt(rawHex.slice(1, 3), 16);
-    const g = Number.parseInt(rawHex.slice(3, 5), 16);
-    const b = Number.parseInt(rawHex.slice(5, 7), 16);
-
-    this.syncing = true;
-    try {
-      if (this.channelInputs[0]) this.channelInputs[0].value = String(r);
-      if (this.channelInputs[1]) this.channelInputs[1].value = String(g);
-      if (this.channelInputs[2]) this.channelInputs[2].value = String(b);
-    } finally {
-      this.syncing = false;
-    }
-
-    this.updatePreview();
-    if (!this.syncing) {
-      this.onChange(this.getColor());
-    }
+    const count = this.channels === 4 ? parsed.length : 3;
+    this.color.splice(0, count, ...parsed.slice(0, count));
+    this.render();
+    this.emit();
   }
 
-  private handleChannelInput(): void {
-    this.updatePreview();
-    if (!this.syncing) {
-      this.onChange(this.getColor());
-    }
+  private emit(): void {
+    this.onChange(this.color.slice(0, this.channels));
   }
 
-  private updatePreview(): void {
-    const color = this.getColor();
-    const [r, g, b] = color;
-    const a = color.length === 4 ? color[3] : 255;
-
+  /** Sincroniza todos los campos excepto el que el usuario está editando. */
+  private render(): void {
+    const [r = 255, g = 255, b = 255, a = 255] = this.color;
     const rgbHex = `#${toHexByte(r)}${toHexByte(g)}${toHexByte(b)}`;
-    const fullHex =
-      color.length === 4 ? `${rgbHex}${toHexByte(a)}` : rgbHex;
 
-    this.colorInput.value = rgbHex;
-    this.hexPreview.textContent = fullHex;
-    this.swatchIndicator.style.backgroundColor = `rgba(${r}, ${g}, ${b}, ${(a / 255).toFixed(3)})`;
+    if (!isFocused(this.hexInput)) {
+      this.hexInput.value = this.channels === 4 ? rgbHex + toHexByte(a) : rgbHex;
+    }
+    for (const [index, input] of this.channelInputs.entries()) {
+      if (!isFocused(input)) {
+        input.value = String(this.color[index]);
+      }
+    }
+    this.nativeInput.value = rgbHex;
+    const alpha = this.channels === 4 ? a / 255 : 1;
+    this.swatchFill.style.backgroundColor = `rgb(${r} ${g} ${b} / ${alpha.toFixed(3)})`;
   }
 }

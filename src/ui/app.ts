@@ -1,9 +1,8 @@
 import {
   type ColorValue,
-  FORMAT_VERSIONS,
   FormatVersion,
   LAYER_KEYS,
-  type LayerKey,
+  LayerKey,
   type LayerValue,
   type TextureSetConfig,
   ValueKind,
@@ -19,12 +18,21 @@ import {
   type ValidationError,
   validateConfig,
 } from "../validators/rules";
-import { LayerRow } from "./layerRow";
+import { h, icon } from "./dom";
+import { renderJson } from "./jsonView";
+import { LAYER_LABELS, LayerEditor } from "./layerEditor";
+import { SegmentedControl } from "./segmented";
 
-function formatPreviewLayerValue(
-  kind: ValueKind,
-  value: LayerValue,
-): string | number[] {
+type Choice = "none" | LayerKey;
+
+interface ExclusiveGroup {
+  readonly element: HTMLElement;
+  readonly control: SegmentedControl<Choice>;
+  readonly body: HTMLElement;
+  readonly options: readonly [LayerKey, LayerKey];
+}
+
+function formatPreviewLayerValue(kind: ValueKind, value: LayerValue): string | number[] {
   if (kind === ValueKind.TEXTURE_NAME) {
     return typeof value === "string" ? value : "";
   }
@@ -36,15 +44,13 @@ function formatPreviewLayerValue(
     "#" +
     channels
       .map((channel) =>
-        Math.max(0, Math.min(255, Math.round(channel)))
-          .toString(16)
-          .padStart(2, "0")
-          .toLowerCase(),
+        Math.max(0, Math.min(255, Math.round(channel))).toString(16).padStart(2, "0"),
       )
       .join("")
   );
 }
 
+/** JSON final si la configuración es válida; si no, una aproximación para la vista previa. */
 function renderLivePreviewJson(config: TextureSetConfig): string {
   try {
     return serializeTextureSet(config).trimEnd();
@@ -53,418 +59,473 @@ function renderLivePreviewJson(config: TextureSetConfig): string {
     for (const layer of LAYER_KEYS) {
       const layerConfig = config.layers[layer];
       if (layerConfig.enabled) {
-        textureSet[layer] = formatPreviewLayerValue(
-          layerConfig.kind,
-          layerConfig.value(),
-        );
+        textureSet[layer] = formatPreviewLayerValue(layerConfig.kind, layerConfig.value());
       }
     }
     return JSON.stringify(
-      {
-        format_version: config.version,
-        "minecraft:texture_set": textureSet,
-      },
+      { format_version: config.version, "minecraft:texture_set": textureSet },
       null,
       2,
     );
   }
 }
 
+function isLayerKey(field: string): field is LayerKey {
+  return (LAYER_KEYS as readonly string[]).includes(field);
+}
+
+function friendlyMessage(error: ValidationError): string {
+  return isLayerKey(error.field)
+    ? error.message.replace(error.field, LAYER_LABELS[error.field])
+    : error.message;
+}
+
 export class TextureSetApp {
   readonly root: HTMLElement;
   private readonly config: TextureSetConfig;
-  private readonly layerRows = new Map<LayerKey, LayerRow>();
+  private readonly editors = new Map<LayerKey, LayerEditor>();
 
-  private readonly textureNameInput: HTMLInputElement;
-  private readonly textureNameFeedback: HTMLElement;
-  private readonly versionSelect: HTMLSelectElement;
-  private readonly filenameBadge: HTMLElement;
-  private readonly jsonPreviewCode: HTMLElement;
-  private readonly statusBanner: HTMLElement;
+  private readonly nameInput: HTMLInputElement;
+  private readonly nameHint: HTMLElement;
+  private readonly versionControl: SegmentedControl<FormatVersion>;
+  private readonly relief: ExclusiveGroup;
+  private readonly material: ExclusiveGroup;
+  private readonly mersNote: HTMLElement;
+  private readonly filenameElement: HTMLElement;
+  private readonly jsonCode: HTMLElement;
+  private readonly statusElement: HTMLElement;
   private readonly copyButton: HTMLButtonElement;
   private readonly downloadButton: HTMLButtonElement;
+  private readonly toastElement: HTMLElement;
 
-  private syncing = false;
+  private nameTouched = false;
   private copyResetTimer: number | null = null;
+  private toastTimer: number | null = null;
 
   constructor(root: HTMLElement) {
     this.root = root;
     this.config = createDefaultConfig();
 
-    this.root.innerHTML = "";
+    for (const layer of LAYER_KEYS) {
+      this.editors.set(layer, new LayerEditor(layer, this.config, () => this.refresh()));
+    }
 
-    const container = document.createElement("div");
-    container.className = "app-shell";
-
-    // Header
-    const header = document.createElement("header");
-    header.className = "app-header";
-
-    const brand = document.createElement("div");
-    brand.className = "app-header-brand";
-
-    const logo = document.createElement("img");
-    logo.className = "app-header-logo";
+    // Cabecera
+    const logo = h("img", "brand-logo");
     logo.src = "./favicon.png";
-    logo.alt = "OreUI";
-    logo.addEventListener("error", () => {
-      logo.style.display = "none";
-    });
-
-    const textGroup = document.createElement("div");
-    textGroup.className = "app-header-text";
-
-    const title = document.createElement("h1");
-    title.className = "app-title";
-    title.textContent = "Generador de texture_set.json";
-
-    const badge = document.createElement("span");
-    badge.className = "app-header-badge";
-    badge.textContent = "Minecraft Bedrock";
-
-    title.append(badge);
-
-    const subtitle = document.createElement("p");
-    subtitle.className = "app-subtitle";
-    subtitle.textContent =
-      "Escribe el nombre base, activa solo las capas que usarás y descarga el archivo listo para tu resource pack.";
-
-    textGroup.append(title, subtitle);
-    brand.append(logo, textGroup);
-    header.append(brand);
-
-    // Main 2-column layout
-    const mainGrid = document.createElement("main");
-    mainGrid.className = "app-main-grid";
-
-    const configColumn = document.createElement("div");
-    configColumn.className = "config-column";
-
-    // Section 1: Textura
-    const sectionTexture = document.createElement("section");
-    sectionTexture.className = "panel-card";
-
-    const sectionTextureTitle = document.createElement("h2");
-    sectionTextureTitle.className = "section-title";
-    sectionTextureTitle.textContent = "1. Textura";
-
-    const formGrid = document.createElement("div");
-    formGrid.className = "form-grid";
-
-    // Texture name field
-    const nameField = document.createElement("div");
-    nameField.className = "form-field";
-
-    const nameLabel = document.createElement("label");
-    nameLabel.className = "field-label";
-    nameLabel.htmlFor = "texture-name-input";
-    nameLabel.textContent = "Nombre de la textura";
-
-    this.textureNameInput = document.createElement("input");
-    this.textureNameInput.id = "texture-name-input";
-    this.textureNameInput.type = "text";
-    this.textureNameInput.className = "text-input";
-    this.textureNameInput.placeholder = "Ejemplo: stone";
-    this.textureNameInput.autocomplete = "off";
-    this.textureNameInput.spellcheck = false;
-    this.textureNameInput.addEventListener("input", () => {
-      this.handleTextureNameChanged();
-    });
-
-    this.textureNameFeedback = document.createElement("p");
-    this.textureNameFeedback.id = "texture-name-feedback";
-    this.textureNameFeedback.className = "field-feedback";
-    this.textureNameInput.setAttribute(
-      "aria-describedby",
-      "texture-name-feedback",
+    logo.alt = "";
+    logo.addEventListener("error", () => logo.remove());
+    const header = h(
+      "header",
+      "app-header",
+      h(
+        "div",
+        "brand",
+        logo,
+        h(
+          "div",
+          "",
+          h("h1", "brand-title", "Generador de Texture Sets"),
+          h(
+            "p",
+            "brand-subtitle",
+            "Configura las capas PBR de tu textura y descarga el texture_set.json para tu resource pack.",
+          ),
+        ),
+      ),
+      h("span", "platform-tag", "Minecraft Bedrock"),
     );
 
-    nameField.append(
-      nameLabel,
-      this.textureNameInput,
-      this.textureNameFeedback,
+    // Paso 1: nombre y versión
+    this.nameInput = h("input", "text-input input-lg mono");
+    this.nameInput.id = "texture-name";
+    this.nameInput.type = "text";
+    this.nameInput.placeholder = "stone";
+    this.nameInput.autocomplete = "off";
+    this.nameInput.spellcheck = false;
+    this.nameInput.setAttribute("aria-describedby", "texture-name-hint");
+    this.nameInput.addEventListener("input", () => {
+      this.nameTouched = true;
+      this.config.setTextureName(this.nameInput.value);
+      this.refresh();
+    });
+    this.nameHint = h("p", "field-hint");
+    this.nameHint.id = "texture-name-hint";
+
+    const nameLabel = h("label", "field-label", "Nombre de la textura");
+    nameLabel.htmlFor = this.nameInput.id;
+
+    this.versionControl = new SegmentedControl(
+      "format_version",
+      [
+        { value: FormatVersion.V1_21_30, label: "1.21.30", hint: "Recomendada · admite MERS" },
+        { value: FormatVersion.V1_16_100, label: "1.16.100", hint: "Clásica · solo MER" },
+      ],
+      (version) => this.handleVersionSelected(version),
+      "segmented-cards",
     );
 
-    // Format version field
-    const versionField = document.createElement("div");
-    versionField.className = "form-field";
+    const stepTexture = this.card(
+      "1",
+      "Textura",
+      "Nombre base del archivo y versión del formato.",
+      h(
+        "div",
+        "basics-grid",
+        h("div", "field", nameLabel, this.nameInput, this.nameHint),
+        h(
+          "div",
+          "field",
+          h("span", "field-label", "Format version"),
+          this.versionControl.element,
+        ),
+      ),
+    );
 
-    const versionLabel = document.createElement("label");
-    versionLabel.className = "field-label";
-    versionLabel.htmlFor = "format-version-select";
-    versionLabel.textContent = "Format version";
+    // Paso 2: capas
+    const colorBlock = this.layerBlock(
+      "color",
+      "Color",
+      "Textura base o un color plano. Siempre se incluye.",
+      h("span", "tag", "Obligatoria"),
+    );
+    colorBlock.body.append(this.editor(LayerKey.COLOR).element);
 
-    this.versionSelect = document.createElement("select");
-    this.versionSelect.id = "format-version-select";
-    this.versionSelect.className = "select-input";
+    this.relief = this.exclusiveGroup(
+      "relief",
+      "Relieve",
+      "Da profundidad a la superficie con un mapa de normales o de alturas.",
+      [LayerKey.NORMAL, LayerKey.HEIGHTMAP],
+    );
 
-    const orderedVersions: FormatVersion[] = [
-      FormatVersion.V1_21_30,
-      FormatVersion.V1_16_100,
-    ];
-    for (const version of FORMAT_VERSIONS) {
-      if (!orderedVersions.includes(version)) {
-        orderedVersions.push(version);
-      }
-    }
+    this.mersNote = h(
+      "p",
+      "note",
+      icon("info"),
+      h("span", "", "MERS requiere format_version 1.21.30; se selecciona automáticamente."),
+    );
+    this.material = this.exclusiveGroup(
+      "material",
+      "Material",
+      "Metalness, emisión y rugosidad. MERS añade subsurface scattering.",
+      [LayerKey.MER, LayerKey.MERS],
+    );
+    this.material.body.append(this.mersNote);
 
-    for (const version of orderedVersions) {
-      const option = document.createElement("option");
-      option.value = version;
-      option.textContent = version;
-      this.versionSelect.append(option);
-    }
+    const stepLayers = this.card(
+      "2",
+      "Capas",
+      "Activa solo las que vayas a usar.",
+      h(
+        "div",
+        "layer-blocks",
+        colorBlock.element,
+        this.relief.element,
+        this.material.element,
+      ),
+    );
 
-    this.versionSelect.addEventListener("change", () => {
-      this.handleVersionChanged();
-    });
+    // Resultado
+    this.filenameElement = h("code", "filename-text");
+    this.jsonCode = h("code", "");
+    this.statusElement = h("div", "status");
+    this.statusElement.setAttribute("aria-live", "polite");
 
-    const versionHint = document.createElement("p");
-    versionHint.className = "field-hint";
-    versionHint.textContent =
-      "Usa 1.21.30 para soporte de MERS (subsurface) o 1.16.100 para packs clásicos.";
-
-    versionField.append(versionLabel, this.versionSelect, versionHint);
-
-    formGrid.append(nameField, versionField);
-    sectionTexture.append(sectionTextureTitle, formGrid);
-
-    // Section 2: Capas PBR
-    const sectionLayers = document.createElement("section");
-    sectionLayers.className = "panel-card";
-
-    const sectionLayersHeader = document.createElement("div");
-    sectionLayersHeader.className = "section-header";
-
-    const sectionLayersTitle = document.createElement("h2");
-    sectionLayersTitle.className = "section-title";
-    sectionLayersTitle.textContent = "2. Capas PBR";
-
-    const layersHelp = document.createElement("p");
-    layersHelp.className = "section-help";
-    layersHelp.textContent =
-      "Color es obligatorio. Normal y Mapa de alturas son mutuamente excluyentes, al igual que MER y MERS.";
-
-    sectionLayersHeader.append(sectionLayersTitle, layersHelp);
-
-    const layersList = document.createElement("div");
-    layersList.className = "layers-list";
-
-    for (const layerKey of LAYER_KEYS) {
-      const row = new LayerRow(layerKey, this.config, () => {
-        this.refreshUI({ refreshName: false });
-      });
-      this.layerRows.set(layerKey, row);
-      layersList.append(row.element);
-    }
-
-    sectionLayers.append(sectionLayersHeader, layersList);
-    configColumn.append(sectionTexture, sectionLayers);
-
-    // Section 3: Vista previa y salida (Sticky right panel)
-    const previewColumn = document.createElement("aside");
-    previewColumn.className = "preview-column";
-
-    const sectionPreview = document.createElement("section");
-    sectionPreview.className = "panel-card preview-card";
-
-    const previewHeader = document.createElement("div");
-    previewHeader.className = "preview-header";
-
-    const sectionPreviewTitle = document.createElement("h2");
-    sectionPreviewTitle.className = "section-title";
-    sectionPreviewTitle.textContent = "3. Vista previa y salida";
-
-    const fileIndicator = document.createElement("div");
-    fileIndicator.className = "output-file-indicator";
-
-    const fileLabel = document.createElement("span");
-    fileLabel.className = "output-file-label";
-    fileLabel.textContent = "Archivo:";
-
-    this.filenameBadge = document.createElement("code");
-    this.filenameBadge.className = "output-filename";
-
-    fileIndicator.append(fileLabel, this.filenameBadge);
-    previewHeader.append(sectionPreviewTitle, fileIndicator);
-
-    const preBlock = document.createElement("pre");
-    preBlock.className = "json-preview-pre";
-
-    this.jsonPreviewCode = document.createElement("code");
-    this.jsonPreviewCode.id = "json-preview";
-    preBlock.append(this.jsonPreviewCode);
-
-    this.statusBanner = document.createElement("div");
-    this.statusBanner.className = "status-banner";
-    this.statusBanner.setAttribute("role", "status");
-    this.statusBanner.setAttribute("aria-live", "polite");
-
-    const actionsRow = document.createElement("div");
-    actionsRow.className = "actions-row";
-
-    this.copyButton = document.createElement("button");
-    this.copyButton.type = "button";
-    this.copyButton.className = "btn btn-secondary";
-    this.copyButton.textContent = "Copiar JSON";
-    this.copyButton.addEventListener("click", () => {
-      void this.handleCopyJson();
-    });
-
-    this.downloadButton = document.createElement("button");
+    this.downloadButton = h("button", "btn btn-primary", icon("download"), "Descargar");
     this.downloadButton.type = "button";
-    this.downloadButton.className = "btn btn-primary";
-    this.downloadButton.textContent = "Descargar texture_set.json";
-    this.downloadButton.addEventListener("click", () => {
-      this.handleDownload();
+    this.downloadButton.addEventListener("click", () => this.handleDownload());
+
+    this.copyButton = h("button", "btn btn-secondary");
+    this.copyButton.type = "button";
+    this.setCopyLabel(false);
+    this.copyButton.addEventListener("click", () => void this.handleCopy());
+
+    const output = h(
+      "aside",
+      "output-col",
+      h(
+        "section",
+        "card output-card",
+        h(
+          "div",
+          "output-head",
+          h("span", "eyebrow", "Resultado"),
+          h("div", "filename", icon("file"), this.filenameElement),
+        ),
+        h("pre", "json-view", this.jsonCode),
+        this.statusElement,
+        h("div", "actions", this.downloadButton, this.copyButton),
+        h(
+          "p",
+          "shortcut-hint",
+          h("kbd", "", "Ctrl"),
+          " + ",
+          h("kbd", "", "S"),
+          " para descargar",
+        ),
+      ),
+    );
+
+    this.toastElement = h("div", "toast");
+    this.toastElement.setAttribute("role", "status");
+
+    this.root.replaceChildren(
+      h(
+        "div",
+        "app",
+        header,
+        h("main", "layout", h("div", "config-col", stepTexture, stepLayers), output),
+      ),
+      this.toastElement,
+    );
+
+    document.addEventListener("keydown", (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+        event.preventDefault();
+        this.handleDownload();
+      }
     });
 
-    actionsRow.append(this.copyButton, this.downloadButton);
+    this.refresh();
+  }
 
-    sectionPreview.append(
-      previewHeader,
-      preBlock,
-      this.statusBanner,
-      actionsRow,
+  private editor(layer: LayerKey): LayerEditor {
+    const editor = this.editors.get(layer);
+    if (!editor) {
+      throw new Error(`No existe editor para ${layer}.`);
+    }
+    return editor;
+  }
+
+  private card(step: string, title: string, description: string, content: HTMLElement): HTMLElement {
+    return h(
+      "section",
+      "card",
+      h(
+        "div",
+        "card-head",
+        h("span", "step", step),
+        h("div", "", h("h2", "card-title", title), h("p", "card-desc", description)),
+      ),
+      content,
     );
-    previewColumn.append(sectionPreview);
-
-    mainGrid.append(configColumn, previewColumn);
-    container.append(header, mainGrid);
-    this.root.append(container);
-
-    this.refreshUI({ refreshName: true });
   }
 
-  private handleTextureNameChanged(): void {
-    if (this.syncing) {
-      return;
+  private layerBlock(
+    accent: string,
+    title: string,
+    description: string,
+    aside: HTMLElement,
+  ): { element: HTMLElement; body: HTMLElement } {
+    const body = h("div", "layer-block-body");
+    const element = h(
+      "div",
+      "layer-block",
+      h(
+        "div",
+        "layer-block-head",
+        h(
+          "div",
+          "layer-block-info",
+          h("h3", "layer-block-title", h("span", "layer-dot"), title),
+          h("p", "layer-block-desc", description),
+        ),
+        aside,
+      ),
+      body,
+    );
+    element.dataset.accent = accent;
+    return { element, body };
+  }
+
+  private exclusiveGroup(
+    accent: string,
+    title: string,
+    description: string,
+    options: readonly [LayerKey, LayerKey],
+  ): ExclusiveGroup {
+    const control = new SegmentedControl<Choice>(
+      title,
+      [
+        { value: "none", label: "Ninguno" },
+        ...options.map((layer) => ({ value: layer, label: LAYER_LABELS[layer] })),
+      ],
+      (choice) => this.handleGroupSelected(options, choice),
+    );
+    const block = this.layerBlock(accent, title, description, control.element);
+    for (const layer of options) {
+      block.body.append(this.editor(layer).element);
     }
-    this.config.setTextureName(this.textureNameInput.value);
-    this.refreshUI({ refreshName: false });
+    return { element: block.element, control, body: block.body, options };
   }
 
-  private handleVersionChanged(): void {
-    if (this.syncing) {
-      return;
-    }
-    this.config.setVersion(this.versionSelect.value as FormatVersion);
-    this.refreshUI({ refreshName: false });
-  }
-
-  private refreshUI(options: { refreshName: boolean }): void {
-    this.syncing = true;
-    try {
-      if (options.refreshName) {
-        this.textureNameInput.value = this.config.textureName;
+  private handleGroupSelected(options: readonly [LayerKey, LayerKey], choice: Choice): void {
+    const previousVersion = this.config.version;
+    if (choice === "none") {
+      for (const layer of options) {
+        this.config.setLayerEnabled(layer, false);
       }
-      this.versionSelect.value = this.config.version;
-      for (const row of this.layerRows.values()) {
-        row.refresh();
-      }
-    } finally {
-      this.syncing = false;
+    } else {
+      this.config.setLayerEnabled(choice, true);
     }
-
-    this.refreshValidationAndPreview();
+    if (this.config.version !== previousVersion) {
+      this.showToast(`format_version cambiada a ${this.config.version} para usar MERS.`);
+    }
+    this.refresh();
   }
 
-  private refreshValidationAndPreview(): void {
+  private handleVersionSelected(version: FormatVersion): void {
+    const hadMers = this.config.layers[LayerKey.MERS].enabled;
+    this.config.setVersion(version);
+    if (hadMers && !this.config.layers[LayerKey.MERS].enabled) {
+      this.showToast(`MERS no existe en ${version}; se cambió a MER.`);
+    }
+    this.refresh();
+  }
+
+  private refresh(): void {
     const errors = validateConfig(this.config);
-    const trimmedName = this.config.textureName.trim();
-    const displayFilename = trimmedName
-      ? outputFilename(trimmedName)
-      : "sin_nombre.texture_set.json";
+    const name = this.config.textureName.trim();
 
-    this.filenameBadge.textContent = displayFilename;
-    this.filenameBadge.classList.toggle("output-filename-placeholder", !trimmedName);
+    this.versionControl.setValue(this.config.version);
+    for (const group of [this.relief, this.material]) {
+      const active = group.options.find((layer) => this.config.layers[layer].enabled);
+      group.control.setValue(active ?? "none");
+      group.body.hidden = active === undefined;
+      for (const layer of group.options) {
+        this.editor(layer).element.hidden = layer !== active;
+      }
+    }
+    this.mersNote.hidden = !this.config.layers[LayerKey.MERS].enabled;
 
-    const nameError = errors.find(
-      (err: ValidationError) => err.field === "texture_name",
-    );
-    const hasTypedOrInvalidName =
-      nameError !== undefined && this.config.textureName.length > 0;
+    // Los errores de capa derivados de un nombre vacío no aportan nada hasta que haya nombre.
+    for (const [layer, editor] of this.editors) {
+      const error = name ? errors.find((err) => err.field === layer) : undefined;
+      editor.refresh(error ? friendlyMessage(error) : undefined);
+    }
 
-    if (nameError) {
-      this.textureNameFeedback.textContent = nameError.message;
-      this.textureNameFeedback.classList.toggle(
-        "field-feedback-error",
-        hasTypedOrInvalidName,
-      );
-      this.textureNameInput.classList.toggle(
-        "input-invalid",
-        hasTypedOrInvalidName,
+    const nameError = errors.find((err) => err.field === "texture_name");
+    const showNameError = nameError !== undefined && this.nameTouched;
+    this.nameInput.classList.toggle("is-invalid", showNameError);
+    this.nameHint.classList.toggle("is-error", showNameError);
+    if (showNameError) {
+      this.nameHint.textContent = nameError.message;
+    } else if (name) {
+      this.nameHint.replaceChildren(
+        "Prefijo de las capas, p. ej. ",
+        h("code", "", `${name}_normal`),
+        ".",
       );
     } else {
-      this.textureNameFeedback.textContent =
-        "Se aplica automáticamente como prefijo sugerido en las capas de textura.";
-      this.textureNameFeedback.classList.remove("field-feedback-error");
-      this.textureNameInput.classList.remove("input-invalid");
+      this.nameHint.textContent = "El nombre del archivo de imagen base, sin extensión.";
     }
 
-    this.jsonPreviewCode.textContent = renderLivePreviewJson(this.config);
+    this.filenameElement.textContent = name ? outputFilename(name) : "nombre.texture_set.json";
+    this.filenameElement.classList.toggle("is-placeholder", !name);
+    renderJson(this.jsonCode, renderLivePreviewJson(this.config));
 
     const isValid = errors.length === 0;
     this.copyButton.disabled = !isValid;
     this.downloadButton.disabled = !isValid;
-
-    if (!isValid) {
-      this.statusBanner.className = "status-banner status-error";
-      this.statusBanner.textContent = errors[0]?.message ?? "Configuración inválida.";
-    } else {
-      const targetFile = outputFilename(this.config.textureName);
-      this.statusBanner.className = "status-banner status-ok";
-      this.statusBanner.textContent = `Listo para generar: ${targetFile}`;
-    }
+    this.renderStatus(errors, name);
   }
 
-  private async handleCopyJson(): Promise<void> {
-    const errors = validateConfig(this.config);
-    if (errors.length > 0) {
-      this.refreshValidationAndPreview();
+  private renderStatus(errors: readonly ValidationError[], name: string): void {
+    if (errors.length === 0) {
+      this.statusElement.className = "status status-ok";
+      this.statusElement.replaceChildren(icon("check"), h("span", "", "Listo para descargar"));
+      return;
+    }
+    if (!name && !this.nameTouched) {
+      this.statusElement.className = "status status-neutral";
+      this.statusElement.replaceChildren(
+        icon("info"),
+        h("span", "", "Escribe un nombre de textura para empezar."),
+      );
       return;
     }
 
+    const list = h("ul", "status-list");
+    for (const error of errors) {
+      const button = h("button", "link-button", friendlyMessage(error));
+      button.type = "button";
+      button.addEventListener("click", () => this.focusField(error.field));
+      list.append(h("li", "", button));
+    }
+    this.statusElement.className = "status status-error";
+    this.statusElement.replaceChildren(icon("alert"), list);
+  }
+
+  private focusField(field: string): void {
+    if (field === "texture_name") {
+      this.nameInput.focus();
+    } else if (isLayerKey(field)) {
+      this.editor(field).focus();
+    }
+  }
+
+  private setCopyLabel(copied: boolean): void {
+    this.copyButton.replaceChildren(
+      icon(copied ? "check" : "copy"),
+      copied ? "Copiado" : "Copiar JSON",
+    );
+  }
+
+  private async handleCopy(): Promise<void> {
+    if (validateConfig(this.config).length > 0) {
+      return;
+    }
     try {
-      const jsonText = serializeTextureSet(this.config);
-      await navigator.clipboard.writeText(jsonText);
-      this.copyButton.textContent = "¡Copiado!";
+      await navigator.clipboard.writeText(serializeTextureSet(this.config));
+      this.setCopyLabel(true);
       if (this.copyResetTimer !== null) {
         window.clearTimeout(this.copyResetTimer);
       }
       this.copyResetTimer = window.setTimeout(() => {
-        this.copyButton.textContent = "Copiar JSON";
+        this.setCopyLabel(false);
         this.copyResetTimer = null;
       }, 1500);
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "No se pudo copiar al portapapeles.";
-      this.statusBanner.className = "status-banner status-error";
-      this.statusBanner.textContent = message;
+    } catch {
+      this.showToast("No se pudo copiar al portapapeles.", true);
     }
   }
 
   private handleDownload(): void {
+    const errors = validateConfig(this.config);
+    if (errors.length > 0) {
+      this.nameTouched = true;
+      this.refresh();
+      const first = errors[0];
+      if (first) {
+        this.focusField(first.field);
+      }
+      return;
+    }
     try {
       const filename = downloadTextureSet(this.config);
-      this.statusBanner.className = "status-banner status-ok";
-      this.statusBanner.textContent = `Archivo descargado: ${filename}`;
+      this.showToast(`Descargado ${filename}`);
     } catch (error) {
-      if (error instanceof ConfigurationInvalid) {
-        this.statusBanner.className = "status-banner status-error";
-        this.statusBanner.textContent =
-          error.errors[0]?.message ?? error.message;
-        return;
-      }
       const message =
-        error instanceof Error
-          ? error.message
-          : "No se pudo generar el archivo.";
-      this.statusBanner.className = "status-banner status-error";
-      this.statusBanner.textContent = message;
+        error instanceof ConfigurationInvalid
+          ? (error.errors[0]?.message ?? error.message)
+          : error instanceof Error
+            ? error.message
+            : "No se pudo generar el archivo.";
+      this.showToast(message, true);
     }
+  }
+
+  private showToast(message: string, isError = false): void {
+    this.toastElement.textContent = message;
+    this.toastElement.classList.toggle("toast-error", isError);
+    this.toastElement.classList.add("is-visible");
+    if (this.toastTimer !== null) {
+      window.clearTimeout(this.toastTimer);
+    }
+    this.toastTimer = window.setTimeout(() => {
+      this.toastElement.classList.remove("is-visible");
+      this.toastTimer = null;
+    }, 3200);
   }
 }
 
