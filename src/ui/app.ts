@@ -100,17 +100,38 @@ export class TextureSetApp {
     const header = document.createElement("header");
     header.className = "app-header";
 
+    const brand = document.createElement("div");
+    brand.className = "app-header-brand";
+
+    const logo = document.createElement("img");
+    logo.className = "app-header-logo";
+    logo.src = "./favicon.png";
+    logo.alt = "OreUI";
+    logo.addEventListener("error", () => {
+      logo.style.display = "none";
+    });
+
+    const textGroup = document.createElement("div");
+    textGroup.className = "app-header-text";
+
     const title = document.createElement("h1");
     title.className = "app-title";
-    title.textContent =
-      "Generador de texture_set.json para Minecraft Bedrock";
+    title.textContent = "Generador de texture_set.json";
+
+    const badge = document.createElement("span");
+    badge.className = "app-header-badge";
+    badge.textContent = "Minecraft Bedrock";
+
+    title.append(badge);
 
     const subtitle = document.createElement("p");
     subtitle.className = "app-subtitle";
     subtitle.textContent =
       "Escribe el nombre base, activa solo las capas que usarás y descarga el archivo listo para tu resource pack.";
 
-    header.append(title, subtitle);
+    textGroup.append(title, subtitle);
+    brand.append(logo, textGroup);
+    header.append(brand);
 
     // Main 2-column layout
     const mainGrid = document.createElement("main");

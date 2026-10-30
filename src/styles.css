@@ -1,34 +1,84 @@
+/*
+ * OreUI Vanilla CSS Design System for MCBE Texture Set Generator
+ * Inspired by Spectrollay-OreUI (https://github.com/Spectrollay-OreUI/OreUI)
+ * and Minecraft Bedrock UI Design Language
+ */
+
+/* ==========================================================================
+   OreUI Design Tokens & CSS Variables
+   ========================================================================== */
 :root {
-  --bg-page: #f5f7fa;
-  --bg-surface: #ffffff;
-  --bg-subtle: #f8fafc;
-  --bg-code: #0f172a;
-  --text-primary: #1e293b;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
-  --text-code: #e2e8f0;
-  --border-color: #cbd5e1;
-  --border-subtle: #e2e8f0;
-  --accent: #2563eb;
-  --accent-hover: #1d4ed8;
-  --accent-soft: #eff6ff;
-  --focus-ring: #3b82f6;
-  --status-ok-bg: #ecfdf5;
-  --status-ok-border: #a7f3d0;
-  --status-ok-text: #065f46;
-  --status-err-bg: #fef2f2;
-  --status-err-border: #fecaca;
-  --status-err-text: #991b1b;
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 10px;
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+  /* System Fonts */
+  --font-system: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-title: var(--font-system);
+  --font-subheading: var(--font-system);
+  --font-ui: var(--font-system);
+  --font-ui-regular: var(--font-system);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  /* Neutrals (OreUI Dark Theme) */
+  --neutral-100: #141415;
+  --neutral-border: #1E1E1F;
+  --neutral-shadow: #242425;
+  --neutral-background: #313233;
+  --neutral-background-elevated: #38393B;
+  --neutral-background-hovered: #58585A;
+  --neutral-background-pressed: #242425;
+  --neutral-bevel-top: #5A5B5C;
+  --neutral-bevel-bottom: #333334;
+
+  --neutral-text: #FFFFFF;
+  --neutral-text-dimmer: #D0D1D4;
+  --neutral-text-dimmest: #B1B2B5;
+  --neutral-text-muted: #8C8D90;
+
+  /* Primary (OreUI Green - Confirm / Action) */
+  --primary-background: #3C8527;
+  --primary-background-hovered: #2A641C;
+  --primary-background-pressed: #1D4D13;
+  --primary-shadow: #1D4D13;
+  --primary-tint: #6CC349;
+  --primary-text: #FFFFFF;
+  --primary-text-soft: #A0E081;
+
+  /* Secondary (OreUI Light Gray Buttons) */
+  --secondary-background: #D0D1D4;
+  --secondary-background-hovered: #B1B2B5;
+  --secondary-background-pressed: #9EA0A4;
+  --secondary-shadow: #58585A;
+  --secondary-text: #1E1E1F;
+
+  /* Destructive / Error (OreUI Red) */
+  --destructive-background: #CA3636;
+  --destructive-background-hovered: #C02D2D;
+  --destructive-background-pressed: #AD1D1D;
+  --destructive-shadow: #AD1D1D;
+  --destructive-text: #FFFFFF;
+  --destructive-tint: #F46D6D;
+
+  /* Informative & Warning */
+  --informative-background: #2E6BE5;
+  --informative-tint: #8CB3FF;
+  --warning-tint: #FFE866;
+  --warning-shadow: #D3791F;
+
+  /* Surface mapping */
+  --bg-page: #181819;
+  --bg-surface: #313233;
+  --bg-subtle: #242425;
+  --bg-input: #242425;
+  --bg-code: #121314;
+
+  /* Focus ring */
+  --focus-ring: #FFFFFF;
+
+  /* Crisp Bedrock geometry */
+  --radius-none: 0px;
 }
 
+/* ==========================================================================
+   Base Styles & Reset
+   ========================================================================== */
 *,
 *::before,
 *::after {
@@ -37,12 +87,18 @@
 
 body {
   margin: 0;
-  font-family: var(--font-sans);
+  font-family: var(--font-ui);
   font-size: 14px;
   line-height: 1.5;
-  color: var(--text-primary);
+  color: var(--neutral-text);
   background-color: var(--bg-page);
+  /* Minecraft Bedrock slate menu background with subtle ambient depth */
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(0, 0, 0, 0.35) 100%),
+    radial-gradient(circle at 50% 0%, #252628 0%, #161617 80%);
+  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
 }
 
 .hidden,
@@ -50,64 +106,156 @@ body {
   display: none !important;
 }
 
-/* Layout */
-.app-shell {
-  max-width: 1480px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 12px 24px 18px;
+/* Custom OreUI Scrollbars */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
 }
 
+::-webkit-scrollbar-track {
+  background-color: var(--neutral-shadow);
+  border: 1px solid var(--neutral-100);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--neutral-text-muted);
+  border: 2px solid var(--neutral-border);
+  box-shadow:
+    inset 1px 1px var(--neutral-text-dimmest),
+    inset -1px -1px var(--neutral-background-hovered);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--neutral-text-dimmest);
+  box-shadow:
+    inset 1px 1px var(--neutral-text),
+    inset -1px -1px var(--neutral-text-muted);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--neutral-text-muted) var(--neutral-shadow);
+}
+
+/* ==========================================================================
+   Layout
+   ========================================================================== */
+.app-shell {
+  max-width: 1560px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 16px 24px 28px;
+}
+
+/* App Header */
 .app-header {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 6px 20px;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border-subtle);
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+  padding: 14px 20px 16px;
+  background-color: var(--bg-surface);
+  border-top: 2px solid var(--neutral-bevel-top);
+  border-left: 2px solid var(--neutral-bevel-bottom);
+  border-right: 2px solid var(--neutral-bevel-bottom);
+  border-bottom: 2px solid var(--neutral-border);
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.08),
+    inset -1px -1px 0 rgba(0, 0, 0, 0.4),
+    0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+.app-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.app-header-logo {
+  width: 38px;
+  height: 38px;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+.app-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 
 .app-title {
   margin: 0;
-  font-size: 1.2rem;
+  font-family: var(--font-title);
+  font-size: 1.35rem;
   font-weight: 700;
-  color: var(--text-primary);
   letter-spacing: -0.01em;
+  color: var(--neutral-text);
+  text-shadow: 1px 1px 0 var(--neutral-100);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.app-header-badge {
+  display: inline-block;
+  font-family: var(--font-subheading);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--primary-tint);
+  background-color: var(--neutral-shadow);
+  border: 1px solid var(--neutral-bevel-top);
+  padding: 2px 8px;
+  text-shadow: 1px 1px 0 var(--neutral-100);
+  vertical-align: middle;
 }
 
 .app-subtitle {
   margin: 0;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
+  font-family: var(--font-ui-regular);
+  font-size: 0.88rem;
+  color: var(--neutral-text-dimmest);
 }
 
+/* 2-Column Grid Layout: Proporcionada para que el JSON no tenga scrollbar horizontal */
 .app-main-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.85fr) minmax(340px, 1fr);
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) clamp(400px, 32vw, 480px);
+  gap: 18px;
   align-items: start;
 }
 
 .config-column {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
+  min-width: 0;
 }
 
 .preview-column {
   position: sticky;
-  top: 12px;
+  top: 16px;
+  min-width: 0;
 }
 
-/* Cards & Sections */
+/* ==========================================================================
+   OreUI Panel Cards & Sections
+   ========================================================================== */
 .panel-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 11px 16px;
-  box-shadow: var(--shadow-sm);
+  background-color: var(--bg-surface);
+  border-top: 2px solid var(--neutral-bevel-top);
+  border-left: 2px solid var(--neutral-bevel-bottom);
+  border-right: 2px solid var(--neutral-bevel-bottom);
+  border-bottom: 2px solid var(--neutral-border);
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.08),
+    inset -1px -1px 0 rgba(0, 0, 0, 0.35),
+    0 3px 8px rgba(0, 0, 0, 0.35);
+  padding: 14px 18px 16px;
 }
 
 .section-header {
@@ -115,28 +263,40 @@ body {
   align-items: baseline;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 4px 16px;
-  margin-bottom: 8px;
+  gap: 6px 16px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--neutral-shadow);
+  box-shadow: 0 1px 0 var(--neutral-bevel-top);
 }
 
 .section-title {
-  margin: 0 0 8px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text-primary);
+  margin: 0;
+  font-family: var(--font-subheading);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--neutral-text);
+  text-shadow: 1px 1px 0 var(--neutral-100);
 }
 
-.section-header .section-title {
-  margin-bottom: 0;
+.panel-card > .section-title:first-child {
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--neutral-shadow);
+  box-shadow: 0 1px 0 var(--neutral-bevel-top);
 }
 
 .section-help {
   margin: 0;
+  font-family: var(--font-ui-regular);
   font-size: 0.8rem;
-  color: var(--text-secondary);
+  color: var(--neutral-text-dimmest);
 }
 
-/* Forms */
+/* ==========================================================================
+   OreUI Forms & Controls
+   ========================================================================== */
 .form-grid {
   display: grid;
   grid-template-columns: 1.35fr 1fr;
@@ -148,160 +308,305 @@ body {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: 3px 10px;
+  gap: 6px 12px;
 }
 
 .field-label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: var(--neutral-text-dimmer);
+  text-shadow: 1px 1px 0 var(--neutral-100);
   white-space: nowrap;
 }
 
+/* OreUI Sunken Input Fields */
 .text-input,
-.select-input,
 .layer-text-input,
-.layer-kind-select,
 .channel-input {
-  font-family: inherit;
-  font-size: 0.84rem;
-  color: var(--text-primary);
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  padding: 5px 9px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  color: var(--neutral-text);
+  background-color: var(--bg-input);
+  border: 2px solid var(--neutral-border);
+  box-shadow: inset 0 3px 0 var(--neutral-100), inset 0 -1px 0 var(--neutral-bevel-bottom);
+  border-radius: 0;
+  padding: 7px 10px;
+  caret-color: var(--primary-tint);
+  transition: border-color 0.1s ease, box-shadow 0.1s ease;
+}
+
+.text-input::placeholder,
+.layer-text-input::placeholder {
+  color: var(--neutral-text-muted);
+}
+
+.text-input::selection,
+.layer-text-input::selection,
+.channel-input::selection {
+  background-color: rgba(108, 195, 73, 0.5);
+  color: var(--neutral-text);
 }
 
 .text-input:hover:not(:disabled),
-.select-input:hover:not(:disabled),
 .layer-text-input:hover:not(:disabled),
-.layer-kind-select:hover:not(:disabled),
 .channel-input:hover:not(:disabled) {
-  border-color: #94a3b8;
-}
-
-:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 1px;
+  border-color: var(--neutral-bevel-bottom);
 }
 
 .text-input:focus-visible,
-.select-input:focus-visible,
 .layer-text-input:focus-visible,
-.layer-kind-select:focus-visible,
 .channel-input:focus-visible {
   outline: none;
-  border-color: var(--focus-ring);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  border-color: var(--neutral-text);
+  box-shadow: inset 0 3px 0 var(--neutral-100), 0 0 0 1px var(--neutral-text);
 }
 
 .input-invalid {
-  border-color: #dc2626;
+  border-color: var(--destructive-background) !important;
+  box-shadow: inset 0 3px 0 var(--destructive-shadow), 0 0 0 1px var(--destructive-tint) !important;
 }
 
 .field-feedback,
 .field-hint {
   grid-column: 1 / -1;
   margin: 0;
-  font-size: 0.74rem;
-  line-height: 1.25;
-  color: var(--text-muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
+  color: var(--neutral-text-dimmest);
 }
 
 .field-feedback-error {
-  color: var(--status-err-text);
-  font-weight: 500;
+  color: var(--destructive-tint);
+  font-weight: bold;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4);
 }
 
-/* Layer Rows */
+/* OreUI Dropdown Select */
+.select-input,
+.layer-kind-select {
+  font-family: var(--font-ui);
+  font-size: 0.86rem;
+  color: var(--neutral-text);
+  background-color: var(--bg-input);
+  border: 2px solid var(--neutral-border);
+  box-shadow: inset 0 -3px 0 var(--neutral-100), inset 1px 1px 0 rgba(255, 255, 255, 0.1);
+  border-radius: 0;
+  padding: 7px 32px 7px 10px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpolygon points='0,0 10,0 5,5' fill='%23D0D1D4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: calc(100% - 10px) center;
+  background-size: 10px 6px;
+  transition: border-color 0.1s ease;
+}
+
+.select-input:hover:not(:disabled),
+.layer-kind-select:hover:not(:disabled) {
+  border-color: var(--neutral-bevel-bottom);
+  background-color: var(--neutral-background-pressed);
+}
+
+.select-input:focus-visible,
+.layer-kind-select:focus-visible {
+  outline: none;
+  border-color: var(--neutral-text);
+  box-shadow: 0 0 0 1px var(--neutral-text);
+}
+
+.select-input option,
+.layer-kind-select option {
+  background-color: var(--neutral-background);
+  color: var(--neutral-text);
+  font-family: var(--font-ui);
+}
+
+/* ==========================================================================
+   OreUI Custom Checkbox
+   ========================================================================== */
+.layer-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  margin: 0;
+  border: 2px solid var(--neutral-border);
+  border-radius: 0;
+  background-color: var(--neutral-background-hovered);
+  box-shadow:
+    inset 2px 2px rgba(255, 255, 255, 0.25),
+    inset -2px -2px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.1s ease;
+}
+
+.layer-checkbox:hover:not(:disabled) {
+  background-color: var(--neutral-text-muted);
+}
+
+.layer-checkbox:active:not(:disabled) {
+  background-color: var(--neutral-background);
+}
+
+.layer-checkbox:checked {
+  background-color: var(--primary-background);
+  box-shadow:
+    inset 2px 2px rgba(255, 255, 255, 0.35),
+    inset -2px -2px var(--primary-shadow);
+}
+
+.layer-checkbox:checked:hover:not(:disabled) {
+  background-color: var(--primary-background-hovered);
+}
+
+.layer-checkbox:checked:active:not(:disabled) {
+  background-color: var(--primary-background-pressed);
+}
+
+/* White Checkmark */
+.layer-checkbox:checked::after {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  right: 1px;
+  bottom: 1px;
+  background-image: url("./assets/images/check_white.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 15px 15px;
+  image-rendering: pixelated;
+}
+
+.layer-checkbox:disabled {
+  background-color: var(--primary-background);
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.layer-checkbox:focus-visible {
+  outline: 2px solid var(--neutral-text);
+  outline-offset: 1px;
+}
+
+/* ==========================================================================
+   OreUI Layer Rows
+   ========================================================================== */
 .layers-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .layer-row {
-  display: grid;
-  grid-template-columns: minmax(195px, 240px) 185px minmax(0, 1fr);
-  align-items: center;
-  gap: 6px 12px;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 7px 12px;
-  background-color: var(--bg-surface);
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-radius: 0;
+  padding: 10px 14px;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
 }
 
+/* Active Layer Plate */
 .layer-row-active {
-  border-color: var(--border-color);
-  background-color: var(--bg-surface);
+  background-color: var(--neutral-background-elevated);
+  border-top: 2px solid var(--neutral-bevel-top);
+  border-left: 2px solid var(--neutral-bevel-bottom);
+  border-right: 2px solid var(--neutral-bevel-bottom);
+  border-bottom: 2px solid var(--neutral-border);
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.06),
+    0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
+/* Inactive Layer Plate */
 .layer-row-inactive {
-  grid-template-columns: 1fr;
-  padding: 5px 12px;
-  background-color: var(--bg-subtle);
-  opacity: 0.85;
+  padding: 8px 14px;
+  background-color: var(--neutral-shadow);
+  border-top: 2px solid var(--neutral-bevel-bottom);
+  border-left: 2px solid var(--neutral-100);
+  border-right: 2px solid var(--neutral-100);
+  border-bottom: 2px solid var(--neutral-100);
+  opacity: 0.75;
+}
+
+.layer-row-inactive:hover {
+  opacity: 0.92;
+  background-color: #292a2c;
 }
 
 .layer-header {
-  display: contents;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 18px;
+  flex-wrap: wrap;
+  width: 100%;
 }
 
 .layer-title-group {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 3px;
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .layer-row-inactive .layer-title-group {
   flex-direction: row;
   align-items: center;
   flex-wrap: wrap;
-  gap: 4px 10px;
+  gap: 6px 14px;
 }
 
 .layer-toggle-label {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 10px;
   cursor: pointer;
-  font-weight: 600;
-  font-size: 0.86rem;
-  color: var(--text-primary);
   user-select: none;
 }
 
-.layer-checkbox {
-  width: 15px;
-  height: 15px;
-  margin: 0;
-  accent-color: var(--accent);
-  cursor: pointer;
+.layer-name {
+  font-family: var(--font-ui);
+  font-weight: bold;
+  font-size: 0.92rem;
+  color: var(--neutral-text);
+  text-shadow: 1px 1px 0 var(--neutral-100);
 }
 
-.layer-checkbox:disabled {
-  cursor: not-allowed;
-}
-
+/* OreUI Obligatorio Tag */
 .layer-badge {
   display: inline-block;
-  padding: 0 6px;
-  font-size: 0.68rem;
-  font-weight: 600;
-  color: var(--accent);
-  background-color: var(--accent-soft);
-  border: 1px solid #bfdbfe;
-  border-radius: 999px;
+  padding: 2px 7px;
+  font-family: var(--font-subheading);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--primary-text);
+  background-color: var(--primary-background);
+  border: 1px solid var(--primary-shadow);
+  border-radius: 0;
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.3),
+    inset -1px -1px 0 rgba(0, 0, 0, 0.3);
+  text-shadow: 1px 1px 0 var(--primary-shadow);
 }
 
 .layer-description {
-  margin: 0 0 0 22px;
-  font-size: 0.74rem;
-  line-height: 1.2;
-  color: var(--text-muted);
+  margin: 0 0 0 32px;
+  font-family: var(--font-ui-regular);
+  font-size: 0.78rem;
+  line-height: 1.3;
+  color: var(--neutral-text-dimmest);
 }
 
 .layer-row-inactive .layer-description {
@@ -309,46 +614,58 @@ body {
 }
 
 .layer-kind-select {
-  width: 100%;
-  min-width: 0;
+  flex: 0 0 auto;
+  min-width: 220px;
+  width: auto;
+  max-width: 100%;
 }
 
 .layer-editor-body {
   margin-top: 0;
-  padding-left: 0;
+  padding-left: 32px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  min-width: 0;
+  gap: 8px;
+  width: 100%;
 }
 
 .layer-text-input {
   width: 100%;
 }
 
+/* OreUI Info Note */
 .layer-note {
   margin: 0;
-  font-size: 0.73rem;
-  line-height: 1.2;
-  color: var(--text-secondary);
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--informative-tint);
+  background-color: rgba(46, 107, 229, 0.15);
+  border-left: 3px solid var(--informative-background);
+  width: 100%;
 }
 
-/* Color Editor */
+/* ==========================================================================
+   OreUI Color Editor
+   ========================================================================== */
 .color-editor {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 6px 8px;
-  padding: 4px 8px;
+  gap: 10px 16px;
+  padding: 8px 12px;
   background-color: var(--bg-subtle);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
+  border: 2px solid var(--neutral-border);
+  border-radius: 0;
+  box-shadow: inset 0 2px 0 var(--neutral-100);
+  width: 100%;
 }
 
 .color-picker-group {
   position: relative;
   display: inline-flex;
   align-items: center;
+  flex: 0 0 auto;
 }
 
 .color-native-input {
@@ -365,23 +682,46 @@ body {
 .btn-color-picker {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 3px 8px;
-  font-size: 0.78rem;
-  background-color: var(--bg-surface);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  gap: 7px;
+  padding: 5px 12px;
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: bold;
+  background-color: var(--secondary-background);
+  color: var(--secondary-text);
+  border: 2px solid var(--neutral-border);
+  border-radius: 0;
+  box-shadow:
+    inset 0 -3px var(--secondary-shadow),
+    inset 2px 2px rgba(255, 255, 255, 0.7),
+    inset -2px -5px rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.1s ease, transform 0.05s ease;
 }
 
 .btn-color-picker:hover:not(:disabled) {
-  background-color: #f1f5f9;
+  background-color: var(--secondary-background-hovered);
+  box-shadow:
+    inset 0 -3px var(--secondary-shadow),
+    inset 2px 2px rgba(255, 255, 255, 0.9),
+    inset -2px -5px rgba(255, 255, 255, 0.5);
+}
+
+.btn-color-picker:active:not(:disabled) {
+  transform: translateY(1px);
+  background-color: var(--secondary-background-pressed);
+  box-shadow:
+    inset 2px 2px rgba(255, 255, 255, 0.7),
+    inset -2px -2px rgba(255, 255, 255, 0.4);
 }
 
 .color-swatch {
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
-  border: 1px solid rgba(15, 23, 42, 0.25);
+  width: 16px;
+  height: 16px;
+  border-radius: 0;
+  border: 2px solid var(--neutral-border);
+  box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.6);
   background-color: #ffffff;
   flex-shrink: 0;
 }
@@ -389,51 +729,71 @@ body {
 .color-channels {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-wrap: nowrap;
+  gap: 10px;
+  flex: 0 0 auto;
 }
 
 .channel-field {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
 }
 
 .channel-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-secondary);
+  font-family: var(--font-subheading);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--neutral-text-dimmer);
+  text-shadow: 1px 1px 0 var(--neutral-100);
 }
 
 .channel-input {
-  width: 54px;
-  padding: 3px 5px;
+  width: 52px;
+  padding: 4px 6px;
+  text-align: center;
   font-variant-numeric: tabular-nums;
+  font-family: var(--font-ui);
+  font-weight: bold;
+}
+
+/* Chrome / Safari / Edge removal of spinner arrows for pixel precision */
+.channel-input::-webkit-outer-spin-button,
+.channel-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.channel-input[type=number] {
+  -moz-appearance: textfield;
 }
 
 .hex-preview {
   font-family: var(--font-mono);
-  font-size: 0.78rem;
-  padding: 3px 6px;
-  border-radius: var(--radius-sm);
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 0;
+  background-color: var(--neutral-100);
+  border: 2px solid var(--neutral-border);
+  color: var(--neutral-text-dimmest);
   user-select: all;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .hex-preview-active {
-  color: var(--accent);
-  background-color: var(--accent-soft);
-  border-color: #93c5fd;
-  font-weight: 600;
+  color: var(--warning-tint);
+  border-color: var(--neutral-bevel-top);
+  box-shadow: inset 0 0 0 1px var(--warning-tint);
 }
 
-/* Preview & Output Section */
+/* ==========================================================================
+   OreUI Preview & Output Section
+   ========================================================================== */
 .preview-card {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .preview-header {
@@ -441,11 +801,17 @@ body {
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 4px 10px;
+  gap: 6px 12px;
+  border-bottom: 2px solid var(--neutral-shadow);
+  box-shadow: 0 1px 0 var(--neutral-bevel-top);
+  padding-bottom: 8px;
 }
 
 .preview-header .section-title {
   margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+  box-shadow: none;
 }
 
 .output-file-indicator {
@@ -453,137 +819,283 @@ body {
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
 }
 
 .output-file-label {
-  color: var(--text-secondary);
-  font-weight: 500;
+  color: var(--neutral-text-dimmest);
+  font-family: var(--font-ui);
+  font-weight: bold;
 }
 
 .output-filename {
   font-family: var(--font-mono);
-  font-size: 0.78rem;
-  padding: 1px 6px;
-  background-color: var(--bg-subtle);
-  border: 1px solid var(--border-subtle);
-  border-radius: 4px;
-  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-weight: bold;
+  padding: 2px 8px;
+  background-color: var(--neutral-100);
+  border: 2px solid var(--neutral-border);
+  box-shadow: inset 0 2px 0 #0b0b0c;
+  border-radius: 0;
+  color: var(--warning-tint);
   word-break: break-all;
 }
 
 .output-filename-placeholder {
-  color: var(--text-muted);
+  color: var(--neutral-text-muted);
   font-style: italic;
 }
 
+/* Deep Recessed JSON Terminal */
 .json-preview-pre {
   margin: 0;
-  padding: 10px 12px;
+  padding: 12px 14px;
   background-color: var(--bg-code);
-  color: var(--text-code);
-  border-radius: var(--radius-md);
+  color: var(--primary-text-soft);
+  border: 2px solid var(--neutral-border);
+  box-shadow:
+    inset 0 4px 8px rgba(0, 0, 0, 0.7),
+    inset 0 -2px 0 var(--neutral-shadow);
+  border-radius: 0;
   font-family: var(--font-mono);
-  font-size: 0.8rem;
-  line-height: 1.4;
+  font-size: 0.81rem;
+  line-height: 1.45;
   overflow-x: auto;
   overflow-y: auto;
-  min-height: 110px;
-  max-height: 260px;
+  min-height: 140px;
+  max-height: 320px;
 }
 
-/* Status Banner */
+/* ==========================================================================
+   OreUI Status Banner
+   ========================================================================== */
 .status-banner {
-  padding: 7px 10px;
-  border-radius: var(--radius-sm);
-  font-size: 0.8rem;
-  font-weight: 500;
-  border: 1px solid var(--border-subtle);
-  background-color: var(--bg-subtle);
-  color: var(--text-secondary);
+  padding: 9px 14px;
+  border-radius: 0;
+  font-family: var(--font-ui);
+  font-size: 0.84rem;
+  font-weight: bold;
+  border: 2px solid var(--neutral-border);
+  background-color: var(--neutral-shadow);
+  color: var(--neutral-text-dimmer);
 }
 
 .status-ok {
-  background-color: var(--status-ok-bg);
-  border-color: var(--status-ok-border);
-  color: var(--status-ok-text);
+  background-color: rgba(60, 133, 39, 0.22);
+  border-left: 6px solid var(--primary-background);
+  border-top: 1px solid rgba(60, 133, 39, 0.4);
+  border-right: 1px solid rgba(60, 133, 39, 0.4);
+  border-bottom: 1px solid rgba(60, 133, 39, 0.4);
+  color: var(--primary-text-soft);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
 }
 
 .status-error {
-  background-color: var(--status-err-bg);
-  border-color: var(--status-err-border);
-  color: var(--status-err-text);
+  background-color: rgba(202, 54, 54, 0.22);
+  border-left: 6px solid var(--destructive-background);
+  border-top: 1px solid rgba(202, 54, 54, 0.4);
+  border-right: 1px solid rgba(202, 54, 54, 0.4);
+  border-bottom: 1px solid rgba(202, 54, 54, 0.4);
+  color: var(--destructive-tint);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
 }
 
-/* Buttons */
+/* ==========================================================================
+   OreUI Buttons
+   ========================================================================== */
 .actions-row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 10px;
 }
 
 .btn {
-  font-family: inherit;
-  font-size: 0.84rem;
-  font-weight: 600;
-  border-radius: var(--radius-sm);
-  padding: 7px 12px;
+  height: 42px;
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  font-weight: bold;
+  border-radius: 0;
+  padding: 0 14px 4px 14px;
+  border: 2px solid var(--neutral-border);
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease,
-    opacity 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  user-select: none;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  transition: background-color 0.1s ease, box-shadow 0.1s ease, transform 0.05s ease;
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(2px);
+  padding-bottom: 0;
 }
 
 .btn:disabled,
 input:disabled,
 select:disabled {
-  opacity: 0.55;
+  opacity: 0.65;
   cursor: not-allowed;
 }
 
+/* Green Primary Button (Minecraft OreUI Confirm Button) */
 .btn-primary {
-  flex: 1;
-  background-color: var(--accent);
-  color: #ffffff;
-  border: 1px solid var(--accent);
+  background-color: var(--primary-background);
+  color: var(--primary-text);
+  box-shadow:
+    inset 0 -4px var(--primary-shadow),
+    inset 3px 3px rgba(255, 255, 255, 0.25),
+    inset -3px -7px rgba(255, 255, 255, 0.1);
+  text-shadow: 1px 1px 0 var(--primary-shadow);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: var(--accent-hover);
-  border-color: var(--accent-hover);
+  background-color: var(--primary-background-hovered);
+  box-shadow:
+    inset 0 -4px var(--primary-shadow),
+    inset 3px 3px rgba(255, 255, 255, 0.45),
+    inset -3px -7px rgba(255, 255, 255, 0.25);
 }
 
+.btn-primary:active:not(:disabled) {
+  background-color: var(--primary-background-pressed);
+  box-shadow:
+    inset 3px 3px rgba(255, 255, 255, 0.35),
+    inset -3px -3px rgba(255, 255, 255, 0.2);
+}
+
+/* Gray Secondary Button (Minecraft OreUI Default Button) */
 .btn-secondary {
-  background-color: var(--bg-surface);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  background-color: var(--secondary-background);
+  color: var(--secondary-text);
+  box-shadow:
+    inset 0 -4px var(--secondary-shadow),
+    inset 3px 3px rgba(255, 255, 255, 0.7),
+    inset -3px -7px rgba(255, 255, 255, 0.4);
+  text-shadow: none;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: var(--bg-subtle);
+  background-color: var(--secondary-background-hovered);
+  box-shadow:
+    inset 0 -4px var(--secondary-shadow),
+    inset 3px 3px rgba(255, 255, 255, 0.85),
+    inset -3px -7px rgba(255, 255, 255, 0.6);
 }
 
-/* Responsive */
-@media (max-width: 960px) {
+.btn-secondary:active:not(:disabled) {
+  background-color: var(--secondary-background-pressed);
+  box-shadow:
+    inset 3px 3px rgba(255, 255, 255, 0.8),
+    inset -3px -3px rgba(255, 255, 255, 0.6);
+}
+
+.btn:disabled {
+  background-color: var(--neutral-background-hovered) !important;
+  border-color: var(--neutral-shadow) !important;
+  box-shadow: inset 0 -4px var(--neutral-background) !important;
+  color: var(--neutral-text-muted) !important;
+  text-shadow: none !important;
+  transform: none !important;
+  padding-bottom: 4px !important;
+}
+
+/* ==========================================================================
+   Responsive Adaptations
+   ========================================================================== */
+@media (max-width: 1100px) {
   .app-shell {
-    padding: 12px 14px 24px;
+    padding: 14px 16px 24px;
   }
 
   .app-main-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .preview-column {
     position: static;
   }
+
+  .actions-row {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
-@media (max-width: 720px) {
-  .form-grid {
-    grid-template-columns: 1fr;
+@media (max-width: 768px) {
+  .app-shell {
+    padding: 10px 12px 20px;
+  }
+
+  .app-header {
+    padding: 12px 14px;
+  }
+
+  .app-header-brand {
+    align-items: flex-start;
     gap: 10px;
   }
 
-  .layer-row {
+  .app-title {
+    font-size: 1.25rem;
+  }
+
+  .form-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .form-field {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .layer-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .layer-kind-select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .layer-editor-body {
+    padding-left: 0;
+  }
+
+  .color-editor {
+    gap: 8px 10px;
+  }
+
+  .color-channels {
+    flex-wrap: wrap;
+  }
+
+  .actions-row {
+    grid-template-columns: 1fr;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .layer-row-inactive .layer-title-group {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .layer-row-inactive .layer-description {
+    margin-left: 32px;
+  }
+
+  .channel-input {
+    width: 46px;
   }
 }

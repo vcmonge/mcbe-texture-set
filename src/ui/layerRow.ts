@@ -242,11 +242,6 @@ export class LayerRow {
     this.config.setLayerKind(this.layer, kind);
     this.showValue(kind);
     this.onChange();
-    if (isColorKind(kind)) {
-      window.setTimeout(() => {
-        this.colorEditor.openPalette();
-      }, 0);
-    }
   }
 
   private handleTextChanged(): void {
