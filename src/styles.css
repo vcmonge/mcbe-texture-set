@@ -1,11 +1,10 @@
 /*
- * OreUI Vanilla CSS Design System for MCBE Texture Set Generator
- * Inspired by Spectrollay-OreUI (https://github.com/Spectrollay-OreUI/OreUI)
- * and Minecraft Bedrock UI Design Language
+ * Minimal Dark Design System for MCBE Texture Set Generator
+ * Clean flat surfaces, no bevels, subtle 1px borders
  */
 
 /* ==========================================================================
-   OreUI Design Tokens & CSS Variables
+   Design Tokens & CSS Variables
    ========================================================================== */
 :root {
   /* System Fonts */
@@ -16,7 +15,7 @@
   --font-ui-regular: var(--font-system);
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
-  /* Neutrals (OreUI Dark Theme) */
+  /* Neutrals (Dark Theme) */
   --neutral-100: #141415;
   --neutral-border: #1E1E1F;
   --neutral-shadow: #242425;
@@ -32,7 +31,7 @@
   --neutral-text-dimmest: #B1B2B5;
   --neutral-text-muted: #8C8D90;
 
-  /* Primary (OreUI Green - Confirm / Action) */
+  /* Primary (Green - Confirm / Action) */
   --primary-background: #3C8527;
   --primary-background-hovered: #2A641C;
   --primary-background-pressed: #1D4D13;
@@ -41,14 +40,14 @@
   --primary-text: #FFFFFF;
   --primary-text-soft: #A0E081;
 
-  /* Secondary (OreUI Light Gray Buttons) */
+  /* Secondary (Light Gray Buttons) */
   --secondary-background: #D0D1D4;
   --secondary-background-hovered: #B1B2B5;
   --secondary-background-pressed: #9EA0A4;
   --secondary-shadow: #58585A;
   --secondary-text: #1E1E1F;
 
-  /* Destructive / Error (OreUI Red) */
+  /* Destructive / Error (Red) */
   --destructive-background: #CA3636;
   --destructive-background-hovered: #C02D2D;
   --destructive-background-pressed: #AD1D1D;
@@ -64,15 +63,21 @@
 
   /* Surface mapping */
   --bg-page: #181819;
-  --bg-surface: #313233;
-  --bg-subtle: #242425;
-  --bg-input: #242425;
-  --bg-code: #121314;
+  --bg-surface: #2A2B2C;
+  --bg-surface-elevated: #333435;
+  --bg-subtle: #222223;
+  --bg-input: #1E1F20;
+  --bg-code: #141516;
+
+  /* Borders & Dividers */
+  --border-subtle: #3A3B3C;
+  --border-strong: #48494A;
+  --divider: #3A3B3C;
 
   /* Focus ring */
   --focus-ring: #FFFFFF;
 
-  /* Crisp Bedrock geometry */
+  /* Crisp geometry */
   --radius-none: 0px;
 }
 
@@ -92,11 +97,6 @@ body {
   line-height: 1.5;
   color: var(--neutral-text);
   background-color: var(--bg-page);
-  /* Minecraft Bedrock slate menu background with subtle ambient depth */
-  background-image:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(0, 0, 0, 0.35) 100%),
-    radial-gradient(circle at 50% 0%, #252628 0%, #161617 80%);
-  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
 }
@@ -106,35 +106,28 @@ body {
   display: none !important;
 }
 
-/* Custom OreUI Scrollbars */
+/* Scrollbars */
 ::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background-color: var(--neutral-shadow);
-  border: 1px solid var(--neutral-100);
+  background-color: var(--bg-page);
 }
 
 ::-webkit-scrollbar-thumb {
   background-color: var(--neutral-text-muted);
-  border: 2px solid var(--neutral-border);
-  box-shadow:
-    inset 1px 1px var(--neutral-text-dimmest),
-    inset -1px -1px var(--neutral-background-hovered);
+  border: 2px solid var(--bg-page);
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background-color: var(--neutral-text-dimmest);
-  box-shadow:
-    inset 1px 1px var(--neutral-text),
-    inset -1px -1px var(--neutral-text-muted);
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--neutral-text-muted) var(--neutral-shadow);
+  scrollbar-color: var(--neutral-text-muted) var(--bg-page);
 }
 
 /* ==========================================================================
@@ -153,16 +146,10 @@ body {
   flex-direction: column;
   gap: 6px;
   margin-bottom: 18px;
-  padding: 14px 20px 16px;
+  padding: 16px 20px;
   background-color: var(--bg-surface);
-  border-top: 2px solid var(--neutral-bevel-top);
-  border-left: 2px solid var(--neutral-bevel-bottom);
-  border-right: 2px solid var(--neutral-bevel-bottom);
-  border-bottom: 2px solid var(--neutral-border);
-  box-shadow:
-    inset 1px 1px 0 rgba(255, 255, 255, 0.08),
-    inset -1px -1px 0 rgba(0, 0, 0, 0.4),
-    0 4px 10px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-subtle);
+  border-radius: 0;
 }
 
 .app-header-brand {
@@ -176,7 +163,6 @@ body {
   height: 38px;
   image-rendering: pixelated;
   flex-shrink: 0;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 }
 
 .app-header-text {
@@ -193,7 +179,6 @@ body {
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--neutral-text);
-  text-shadow: 1px 1px 0 var(--neutral-100);
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -207,10 +192,9 @@ body {
   font-weight: 700;
   letter-spacing: 0.02em;
   color: var(--primary-tint);
-  background-color: var(--neutral-shadow);
-  border: 1px solid var(--neutral-bevel-top);
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-strong);
   padding: 2px 8px;
-  text-shadow: 1px 1px 0 var(--neutral-100);
   vertical-align: middle;
 }
 
@@ -243,19 +227,13 @@ body {
 }
 
 /* ==========================================================================
-   OreUI Panel Cards & Sections
+   Panel Cards & Sections
    ========================================================================== */
 .panel-card {
   background-color: var(--bg-surface);
-  border-top: 2px solid var(--neutral-bevel-top);
-  border-left: 2px solid var(--neutral-bevel-bottom);
-  border-right: 2px solid var(--neutral-bevel-bottom);
-  border-bottom: 2px solid var(--neutral-border);
-  box-shadow:
-    inset 1px 1px 0 rgba(255, 255, 255, 0.08),
-    inset -1px -1px 0 rgba(0, 0, 0, 0.35),
-    0 3px 8px rgba(0, 0, 0, 0.35);
-  padding: 14px 18px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 0;
+  padding: 16px 18px 18px;
 }
 
 .section-header {
@@ -264,10 +242,9 @@ body {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 6px 16px;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 2px solid var(--neutral-shadow);
-  box-shadow: 0 1px 0 var(--neutral-bevel-top);
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--divider);
 }
 
 .section-title {
@@ -277,14 +254,12 @@ body {
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--neutral-text);
-  text-shadow: 1px 1px 0 var(--neutral-100);
 }
 
 .panel-card > .section-title:first-child {
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 2px solid var(--neutral-shadow);
-  box-shadow: 0 1px 0 var(--neutral-bevel-top);
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--divider);
 }
 
 .section-help {
@@ -316,11 +291,10 @@ body {
   font-size: 0.85rem;
   font-weight: bold;
   color: var(--neutral-text-dimmer);
-  text-shadow: 1px 1px 0 var(--neutral-100);
   white-space: nowrap;
 }
 
-/* OreUI Sunken Input Fields */
+/* Sunken Input Fields */
 .text-input,
 .layer-text-input,
 .channel-input {
@@ -328,12 +302,11 @@ body {
   font-size: 0.88rem;
   color: var(--neutral-text);
   background-color: var(--bg-input);
-  border: 2px solid var(--neutral-border);
-  box-shadow: inset 0 3px 0 var(--neutral-100), inset 0 -1px 0 var(--neutral-bevel-bottom);
+  border: 1px solid var(--border-strong);
   border-radius: 0;
-  padding: 7px 10px;
+  padding: 8px 10px;
   caret-color: var(--primary-tint);
-  transition: border-color 0.1s ease, box-shadow 0.1s ease;
+  transition: border-color 0.1s ease;
 }
 
 .text-input::placeholder,
@@ -351,7 +324,7 @@ body {
 .text-input:hover:not(:disabled),
 .layer-text-input:hover:not(:disabled),
 .channel-input:hover:not(:disabled) {
-  border-color: var(--neutral-bevel-bottom);
+  border-color: var(--neutral-text-muted);
 }
 
 .text-input:focus-visible,
@@ -359,12 +332,10 @@ body {
 .channel-input:focus-visible {
   outline: none;
   border-color: var(--neutral-text);
-  box-shadow: inset 0 3px 0 var(--neutral-100), 0 0 0 1px var(--neutral-text);
 }
 
 .input-invalid {
   border-color: var(--destructive-background) !important;
-  box-shadow: inset 0 3px 0 var(--destructive-shadow), 0 0 0 1px var(--destructive-tint) !important;
 }
 
 .field-feedback,
@@ -379,20 +350,18 @@ body {
 .field-feedback-error {
   color: var(--destructive-tint);
   font-weight: bold;
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4);
 }
 
-/* OreUI Dropdown Select */
+/* Dropdown Select */
 .select-input,
 .layer-kind-select {
   font-family: var(--font-ui);
   font-size: 0.86rem;
   color: var(--neutral-text);
   background-color: var(--bg-input);
-  border: 2px solid var(--neutral-border);
-  box-shadow: inset 0 -3px 0 var(--neutral-100), inset 1px 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-strong);
   border-radius: 0;
-  padding: 7px 32px 7px 10px;
+  padding: 8px 32px 8px 10px;
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
@@ -405,15 +374,13 @@ body {
 
 .select-input:hover:not(:disabled),
 .layer-kind-select:hover:not(:disabled) {
-  border-color: var(--neutral-bevel-bottom);
-  background-color: var(--neutral-background-pressed);
+  border-color: var(--neutral-text-muted);
 }
 
 .select-input:focus-visible,
 .layer-kind-select:focus-visible {
   outline: none;
   border-color: var(--neutral-text);
-  box-shadow: 0 0 0 1px var(--neutral-text);
 }
 
 .select-input option,
@@ -423,9 +390,7 @@ body {
   font-family: var(--font-ui);
 }
 
-/* ==========================================================================
-   OreUI Custom Checkbox
-   ========================================================================== */
+/* Custom Checkbox */
 .layer-checkbox {
   appearance: none;
   -webkit-appearance: none;
@@ -434,33 +399,29 @@ body {
   height: 22px;
   min-width: 22px;
   margin: 0;
-  border: 2px solid var(--neutral-border);
+  border: 1px solid var(--border-strong);
   border-radius: 0;
-  background-color: var(--neutral-background-hovered);
-  box-shadow:
-    inset 2px 2px rgba(255, 255, 255, 0.25),
-    inset -2px -2px rgba(0, 0, 0, 0.35);
+  background-color: var(--bg-input);
   cursor: pointer;
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.1s ease;
+  transition: background-color 0.1s ease, border-color 0.1s ease;
 }
 
 .layer-checkbox:hover:not(:disabled) {
-  background-color: var(--neutral-text-muted);
+  border-color: var(--neutral-text-muted);
+  background-color: var(--neutral-shadow);
 }
 
 .layer-checkbox:active:not(:disabled) {
-  background-color: var(--neutral-background);
+  background-color: var(--neutral-100);
 }
 
 .layer-checkbox:checked {
   background-color: var(--primary-background);
-  box-shadow:
-    inset 2px 2px rgba(255, 255, 255, 0.35),
-    inset -2px -2px var(--primary-shadow);
+  border-color: var(--primary-shadow);
 }
 
 .layer-checkbox:checked:hover:not(:disabled) {
@@ -517,30 +478,21 @@ body {
 
 /* Active Layer Plate */
 .layer-row-active {
-  background-color: var(--neutral-background-elevated);
-  border-top: 2px solid var(--neutral-bevel-top);
-  border-left: 2px solid var(--neutral-bevel-bottom);
-  border-right: 2px solid var(--neutral-bevel-bottom);
-  border-bottom: 2px solid var(--neutral-border);
-  box-shadow:
-    inset 1px 1px 0 rgba(255, 255, 255, 0.06),
-    0 2px 6px rgba(0, 0, 0, 0.25);
+  background-color: var(--bg-surface-elevated);
+  border: 1px solid var(--border-strong);
 }
 
 /* Inactive Layer Plate */
 .layer-row-inactive {
-  padding: 8px 14px;
-  background-color: var(--neutral-shadow);
-  border-top: 2px solid var(--neutral-bevel-bottom);
-  border-left: 2px solid var(--neutral-100);
-  border-right: 2px solid var(--neutral-100);
-  border-bottom: 2px solid var(--neutral-100);
-  opacity: 0.75;
+  padding: 9px 14px;
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  opacity: 0.6;
 }
 
 .layer-row-inactive:hover {
-  opacity: 0.92;
-  background-color: #292a2c;
+  opacity: 0.85;
+  border-color: var(--border-strong);
 }
 
 .layer-header {
@@ -580,10 +532,9 @@ body {
   font-weight: bold;
   font-size: 0.92rem;
   color: var(--neutral-text);
-  text-shadow: 1px 1px 0 var(--neutral-100);
 }
 
-/* OreUI Obligatorio Tag */
+/* Obligatorio Tag */
 .layer-badge {
   display: inline-block;
   padding: 2px 7px;
@@ -595,10 +546,6 @@ body {
   background-color: var(--primary-background);
   border: 1px solid var(--primary-shadow);
   border-radius: 0;
-  box-shadow:
-    inset 1px 1px 0 rgba(255, 255, 255, 0.3),
-    inset -1px -1px 0 rgba(0, 0, 0, 0.3);
-  text-shadow: 1px 1px 0 var(--primary-shadow);
 }
 
 .layer-description {
@@ -653,11 +600,10 @@ body {
   align-items: center;
   flex-wrap: wrap;
   gap: 10px 16px;
-  padding: 8px 12px;
+  padding: 10px 12px;
   background-color: var(--bg-subtle);
-  border: 2px solid var(--neutral-border);
+  border: 1px solid var(--border-subtle);
   border-radius: 0;
-  box-shadow: inset 0 2px 0 var(--neutral-100);
   width: 100%;
 }
 
@@ -720,8 +666,7 @@ body {
   width: 16px;
   height: 16px;
   border-radius: 0;
-  border: 2px solid var(--neutral-border);
-  box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--border-strong);
   background-color: #ffffff;
   flex-shrink: 0;
 }
@@ -745,7 +690,6 @@ body {
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--neutral-text-dimmer);
-  text-shadow: 1px 1px 0 var(--neutral-100);
 }
 
 .channel-input {
@@ -774,7 +718,7 @@ body {
   padding: 5px 10px;
   border-radius: 0;
   background-color: var(--neutral-100);
-  border: 2px solid var(--neutral-border);
+  border: 1px solid var(--border-subtle);
   color: var(--neutral-text-dimmest);
   user-select: all;
   white-space: nowrap;
@@ -783,8 +727,7 @@ body {
 
 .hex-preview-active {
   color: var(--warning-tint);
-  border-color: var(--neutral-bevel-top);
-  box-shadow: inset 0 0 0 1px var(--warning-tint);
+  border-color: var(--warning-tint);
 }
 
 /* ==========================================================================
@@ -802,9 +745,8 @@ body {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 6px 12px;
-  border-bottom: 2px solid var(--neutral-shadow);
-  box-shadow: 0 1px 0 var(--neutral-bevel-top);
-  padding-bottom: 8px;
+  border-bottom: 1px solid var(--divider);
+  padding-bottom: 10px;
 }
 
 .preview-header .section-title {
@@ -834,8 +776,7 @@ body {
   font-weight: bold;
   padding: 2px 8px;
   background-color: var(--neutral-100);
-  border: 2px solid var(--neutral-border);
-  box-shadow: inset 0 2px 0 #0b0b0c;
+  border: 1px solid var(--border-subtle);
   border-radius: 0;
   color: var(--warning-tint);
   word-break: break-all;
@@ -846,16 +787,13 @@ body {
   font-style: italic;
 }
 
-/* Deep Recessed JSON Terminal */
+/* JSON Terminal */
 .json-preview-pre {
   margin: 0;
   padding: 12px 14px;
   background-color: var(--bg-code);
   color: var(--primary-text-soft);
-  border: 2px solid var(--neutral-border);
-  box-shadow:
-    inset 0 4px 8px rgba(0, 0, 0, 0.7),
-    inset 0 -2px 0 var(--neutral-shadow);
+  border: 1px solid var(--border-subtle);
   border-radius: 0;
   font-family: var(--font-mono);
   font-size: 0.81rem;
@@ -870,34 +808,26 @@ body {
    OreUI Status Banner
    ========================================================================== */
 .status-banner {
-  padding: 9px 14px;
+  padding: 10px 14px;
   border-radius: 0;
   font-family: var(--font-ui);
   font-size: 0.84rem;
   font-weight: bold;
-  border: 2px solid var(--neutral-border);
-  background-color: var(--neutral-shadow);
+  border: 1px solid var(--border-subtle);
+  background-color: var(--bg-subtle);
   color: var(--neutral-text-dimmer);
 }
 
 .status-ok {
-  background-color: rgba(60, 133, 39, 0.22);
-  border-left: 6px solid var(--primary-background);
-  border-top: 1px solid rgba(60, 133, 39, 0.4);
-  border-right: 1px solid rgba(60, 133, 39, 0.4);
-  border-bottom: 1px solid rgba(60, 133, 39, 0.4);
+  background-color: rgba(60, 133, 39, 0.18);
+  border-left: 3px solid var(--primary-background);
   color: var(--primary-text-soft);
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
 }
 
 .status-error {
-  background-color: rgba(202, 54, 54, 0.22);
-  border-left: 6px solid var(--destructive-background);
-  border-top: 1px solid rgba(202, 54, 54, 0.4);
-  border-right: 1px solid rgba(202, 54, 54, 0.4);
-  border-bottom: 1px solid rgba(202, 54, 54, 0.4);
+  background-color: rgba(202, 54, 54, 0.18);
+  border-left: 3px solid var(--destructive-background);
   color: var(--destructive-tint);
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
 }
 
 /* ==========================================================================
