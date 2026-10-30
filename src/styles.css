@@ -122,11 +122,11 @@ p code {
 .app {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 32px 24px 64px;
+  padding: 20px 24px 40px;
 }
 
 .app-header {
-  margin-bottom: 28px;
+  margin-bottom: 16px;
 }
 
 .brand-title {
@@ -142,20 +142,20 @@ p code {
 .layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 390px;
-  gap: 20px;
+  gap: 16px;
   align-items: start;
 }
 
 .config-col {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
   min-width: 0;
 }
 
 .output-col {
   position: sticky;
-  top: 20px;
+  top: 16px;
   min-width: 0;
 }
 
@@ -166,37 +166,39 @@ p code {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface);
-  padding: 22px;
+  padding: 16px 18px;
 }
 
 .card-head {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 10px;
+  margin-bottom: 12px;
 }
 
 .step {
   display: grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   flex-shrink: 0;
-  border-radius: 8px;
+  border-radius: 6px;
   background: var(--surface-3);
   color: var(--text-2);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 650;
 }
 
 .card-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 650;
-  line-height: 26px;
+  line-height: 22px;
 }
 
 .card-desc {
   color: var(--text-3);
+  font-size: 13px;
+  line-height: 1.35;
 }
 
 /* ==========================================================================
@@ -205,13 +207,13 @@ p code {
 .basics-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 20px;
+  gap: 16px;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
 }
 
@@ -235,7 +237,7 @@ p code {
 .text-input {
   width: 100%;
   min-width: 0;
-  height: 38px;
+  height: 34px;
   padding: 0 12px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
@@ -267,8 +269,8 @@ p code {
 }
 
 .input-lg {
-  height: 46px;
-  font-size: 16px;
+  height: 40px;
+  font-size: 15px;
 }
 
 .input-group {
@@ -319,8 +321,8 @@ p code {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 32px;
-  padding: 4px 14px;
+  min-height: 28px;
+  padding: 3px 12px;
   border: 0;
   border-radius: 7px;
   background: transparent;
@@ -344,8 +346,9 @@ p code {
 
 .segment-hint {
   color: var(--text-3);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 400;
+  line-height: 1.3;
 }
 
 /* Card variant: format version */
@@ -360,8 +363,8 @@ p code {
 
 .segmented-cards .segment {
   align-items: flex-start;
-  min-height: 46px;
-  padding: 6px 12px;
+  min-height: 40px;
+  padding: 5px 10px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
   background: var(--bg);
@@ -385,8 +388,8 @@ p code {
 
 /* Small variant: value kind */
 .segmented-sm .segment {
-  min-height: 26px;
-  padding: 2px 10px;
+  min-height: 24px;
+  padding: 1px 10px;
   font-size: 12.5px;
 }
 
@@ -396,7 +399,7 @@ p code {
 .layer-blocks {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .layer-block {
@@ -423,7 +426,7 @@ p code {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 14px 16px;
+  padding: 10px 14px;
 }
 
 .layer-block-head > .tag,
@@ -452,9 +455,9 @@ p code {
 }
 
 .layer-block-desc {
-  margin-top: 2px;
   color: var(--text-3);
-  font-size: 13px;
+  font-size: 12.5px;
+  line-height: 1.35;
 }
 
 .tag {
@@ -469,8 +472,8 @@ p code {
 .layer-block-body {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 14px 16px 16px;
+  gap: 8px;
+  padding: 10px 14px 12px;
   border-top: 1px solid var(--border);
   animation: reveal 0.2s var(--ease);
 }
@@ -479,7 +482,7 @@ p code {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 10px;
+  gap: 8px;
 }
 
 .layer-editor > * {
@@ -507,7 +510,7 @@ p code {
 .layer-text {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   width: 100%;
 }
 
@@ -515,7 +518,7 @@ p code {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: var(--radius-sm);
   background: var(--info-soft);
   color: var(--info);
@@ -552,8 +555,8 @@ p code {
 
 .color-swatch {
   position: relative;
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   flex-shrink: 0;
   overflow: hidden;
   border: 1px solid var(--border-strong);
@@ -616,7 +619,7 @@ p code {
 
 .channel-input {
   width: 52px;
-  height: 36px;
+  height: 32px;
   padding: 0 8px 0 6px;
   border: 0;
   background: transparent;
@@ -640,13 +643,13 @@ p code {
 .output-card {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 
 .output-head {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .eyebrow {
@@ -679,15 +682,15 @@ p code {
 
 .json-view {
   margin: 0;
-  max-height: 380px;
+  max-height: 340px;
   overflow: auto;
-  padding: 14px 16px;
+  padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg);
   font-family: var(--font-mono);
   font-size: 12.5px;
-  line-height: 1.65;
+  line-height: 1.55;
   color: var(--text-2);
 }
 
@@ -720,10 +723,10 @@ p code {
 .status {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 8px;
+  padding: 7px 10px;
   border-radius: var(--radius-sm);
-  font-size: 13px;
+  font-size: 12.5px;
 }
 
 .status .icon {
@@ -781,8 +784,8 @@ p code {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  height: 42px;
-  padding: 0 16px;
+  height: 36px;
+  padding: 0 14px;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   font-weight: 650;
@@ -883,11 +886,11 @@ kbd {
 
 @media (max-width: 640px) {
   .app {
-    padding: 20px 16px 48px;
+    padding: 16px 16px 32px;
   }
 
   .card {
-    padding: 16px;
+    padding: 14px;
   }
 
   .basics-grid {
@@ -897,7 +900,7 @@ kbd {
   .layer-block-head {
     flex-direction: column;
     align-items: stretch;
-    gap: 12px;
+    gap: 8px;
   }
 
   .layer-block-head > .segmented {
