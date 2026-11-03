@@ -76,12 +76,15 @@ export interface LayerConfigInit {
   enabled?: boolean;
   kind?: ValueKind;
   values?: Record<ValueKind, LayerValue>;
+  locked?: boolean;
 }
 
 export class LayerConfig {
   enabled: boolean;
   kind: ValueKind;
   values: Record<ValueKind, LayerValue>;
+  /** When true, the texture name stops following the texture set name. */
+  locked: boolean;
 
   constructor(
     enabledOrInit: boolean | LayerConfigInit = false,
@@ -92,10 +95,12 @@ export class LayerConfig {
       this.enabled = enabledOrInit.enabled ?? false;
       this.kind = enabledOrInit.kind ?? ValueKind.TEXTURE_NAME;
       this.values = enabledOrInit.values ?? defaultValues("", LayerKey.COLOR);
+      this.locked = enabledOrInit.locked ?? false;
     } else {
       this.enabled = enabledOrInit;
       this.kind = kind;
       this.values = values ?? defaultValues("", LayerKey.COLOR);
+      this.locked = false;
     }
   }
 
@@ -173,6 +178,9 @@ export class TextureSetConfig {
   setTextureName(textureName: string): void {
     this.textureName = textureName;
     for (const layer of LAYER_KEYS) {
+      if (this.layers[layer].locked) {
+        continue;
+      }
       this.layers[layer].values[ValueKind.TEXTURE_NAME] = suggestedValue(textureName, layer);
     }
   }

@@ -278,7 +278,7 @@ p code {
 }
 
 .input-group .text-input {
-  padding-right: 40px;
+  padding-right: 72px;
 }
 
 .icon-button {
@@ -301,6 +301,14 @@ p code {
 .icon-button:hover {
   background: var(--surface-3);
   color: var(--text);
+}
+
+.icon-button-lock {
+  right: 37px;
+}
+
+.icon-button-lock[aria-pressed="true"] {
+  color: var(--accent);
 }
 
 /* ==========================================================================

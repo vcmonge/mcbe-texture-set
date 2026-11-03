@@ -61,6 +61,7 @@ export class LayerEditor {
   private readonly textPanel: HTMLElement;
   private readonly textInput: HTMLInputElement;
   private readonly resetButton: HTMLButtonElement;
+  private readonly lockButton: HTMLButtonElement;
   private readonly fileHint: HTMLElement;
   private readonly colorEditor: ColorEditor;
   private readonly errorElement: HTMLElement;
@@ -134,11 +135,21 @@ export class LayerEditor {
       this.textInput.focus();
     });
 
+    this.lockButton = h("button", "icon-button icon-button-lock", icon("unlock"));
+    this.lockButton.type = "button";
+    this.lockButton.setAttribute("aria-pressed", "false");
+    this.lockButton.addEventListener("click", () => {
+      const layerConfig = config.layers[layer];
+      layerConfig.locked = !layerConfig.locked;
+      onChange();
+      this.textInput.focus();
+    });
+
     this.fileHint = h("p", "field-hint");
     this.textPanel = h(
       "div",
       "layer-text",
-      h("div", "input-group", this.textInput, this.resetButton),
+      h("div", "input-group", this.textInput, this.lockButton, this.resetButton),
       this.fileHint,
     );
 
@@ -172,7 +183,19 @@ export class LayerEditor {
         this.textInput.value = text;
       }
       const suggestion = suggestedValue(this.config.textureName, this.layer);
-      this.resetButton.hidden = !this.config.textureName.trim() || text === suggestion;
+      const hasText = text.trim().length > 0;
+      const lockable = this.layer !== LayerKey.COLOR;
+      if (!hasText) {
+        // An empty name cannot stay locked: unlock so the lock is not active while invisible.
+        layerConfig.locked = false;
+      }
+      const locked = layerConfig.locked;
+      this.lockButton.hidden = !lockable || !hasText;
+      this.lockButton.replaceChildren(icon(locked ? "lock" : "unlock"));
+      this.lockButton.setAttribute("aria-pressed", String(locked));
+      this.lockButton.title = locked ? "Unlock name" : "Lock name";
+      this.lockButton.setAttribute("aria-label", this.lockButton.title);
+      this.resetButton.hidden = !this.config.textureName.trim() || text === suggestion || locked;
       const file = text.trim();
       if (file) {
         this.fileHint.replaceChildren(
