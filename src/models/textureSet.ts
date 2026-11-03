@@ -58,6 +58,18 @@ export const LAYER_VALUE_KINDS: Record<LayerKey, readonly ValueKind[]> = {
   [LayerKey.MERS]: [ValueKind.TEXTURE_NAME, ValueKind.RGBA, ValueKind.HEX_RGBA],
 };
 
+/** Each format version supports exactly one material layer. */
+export const MATERIAL_LAYER_BY_VERSION: Record<FormatVersion, LayerKey> = {
+  [FormatVersion.V1_16_100]: LayerKey.MER,
+  [FormatVersion.V1_21_30]: LayerKey.MERS,
+};
+
+/** Format version required by a material layer. */
+export const VERSION_BY_MATERIAL_LAYER: Partial<Record<LayerKey, FormatVersion>> = {
+  [LayerKey.MER]: FormatVersion.V1_16_100,
+  [LayerKey.MERS]: FormatVersion.V1_21_30,
+};
+
 export function suggestedValue(textureName: string, layer: LayerKey): string {
   return `${textureName}${LAYER_SUFFIXES[layer]}`;
 }
@@ -154,8 +166,8 @@ function defaultLayers(
 
 export class TextureSetConfig {
   textureName: string;
-  version: FormatVersion;
   layers: Record<LayerKey, LayerConfig>;
+  private currentVersion: FormatVersion;
 
   constructor(
     textureNameOrInit: string | TextureSetConfigInit = "",
@@ -166,13 +178,36 @@ export class TextureSetConfig {
       const resolvedName = textureNameOrInit.textureName ?? "";
       const resolvedVersion = textureNameOrInit.version ?? FormatVersion.V1_21_30;
       this.textureName = resolvedName;
-      this.version = resolvedVersion;
+      this.currentVersion = resolvedVersion;
       this.layers = textureNameOrInit.layers ?? defaultLayers(resolvedName, resolvedVersion);
     } else {
       this.textureName = textureNameOrInit;
-      this.version = version;
+      this.currentVersion = version;
       this.layers = layers ?? defaultLayers(textureNameOrInit, version);
     }
+    this.syncMaterialWithVersion();
+  }
+
+  get version(): FormatVersion {
+    return this.currentVersion;
+  }
+
+  /** Assigning a version also swaps MER/MERS to the one that version supports. */
+  set version(version: FormatVersion) {
+    this.currentVersion = version;
+    this.syncMaterialWithVersion();
+  }
+
+  /** If a material layer is enabled, keep only the one supported by the current version. */
+  private syncMaterialWithVersion(): void {
+    const mer = this.layers[LayerKey.MER];
+    const mers = this.layers[LayerKey.MERS];
+    if (!mer.enabled && !mers.enabled) {
+      return;
+    }
+    const material = MATERIAL_LAYER_BY_VERSION[this.currentVersion];
+    mer.enabled = material === LayerKey.MER;
+    mers.enabled = material === LayerKey.MERS;
   }
 
   setTextureName(textureName: string): void {
@@ -186,16 +221,7 @@ export class TextureSetConfig {
   }
 
   setVersion(version: FormatVersion): void {
-    if (version === this.version) {
-      return;
-    }
-
-    const hadMers = this.layers[LayerKey.MERS].enabled;
     this.version = version;
-    if (version === FormatVersion.V1_16_100 && hadMers) {
-      this.layers[LayerKey.MERS].enabled = false;
-      this.layers[LayerKey.MER].enabled = true;
-    }
   }
 
   setLayerEnabled(layer: LayerKey, enabled: boolean): void {
@@ -204,10 +230,10 @@ export class TextureSetConfig {
       return;
     }
 
-    if (layer === LayerKey.MERS && enabled) {
-      this.version = FormatVersion.V1_21_30;
+    const requiredVersion = VERSION_BY_MATERIAL_LAYER[layer];
+    if (requiredVersion !== undefined && enabled) {
+      this.version = requiredVersion;
       this.layers[LayerKey.MER].enabled = false;
-    } else if (layer === LayerKey.MER && enabled) {
       this.layers[LayerKey.MERS].enabled = false;
     } else if (layer === LayerKey.NORMAL && enabled) {
       this.layers[LayerKey.HEIGHTMAP].enabled = false;

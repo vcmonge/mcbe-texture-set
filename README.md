@@ -13,8 +13,8 @@ Each additional property is defined as a layer:
 | `color` | The base texture image. It is the only required layer and the only one used by traditional graphics. | Texture name |
 | `normal` | Normal map, simulates surface details and depth. | Image name |
 | `heightmap` | Height map, adds depth using grayscale values. It is not supported for items. | Image name |
-| `metalness_emissive_roughness` (MER) | Defines three material properties in a single image, red = metalness, green = emissiveness (glows in the dark), blue = roughness. | Image or fixed RGB color |
-| `metalness_emissive_roughness_subsurface` (MERS) | Same as MER, with an additional fourth channel (alpha) for *subsurface scattering*, which simulates light passing through materials such as leaves, wax, or skin. Only supported in Vibrant Visuals. | Image or fixed RGBA color |
+| `metalness_emissive_roughness` (MER) | Defines three material properties in a single image, red = metalness, green = emissiveness (glows in the dark), blue = roughness. Only valid with `format_version` 1.16.100. | Image or fixed RGB color |
+| `metalness_emissive_roughness_subsurface` (MERS) | Same as MER, with an additional fourth channel (alpha) for *subsurface scattering*, which simulates light passing through materials such as leaves, wax, or skin. Only supported in Vibrant Visuals, and only valid with `format_version` 1.21.30. | Image or fixed RGBA color |
 
 Instead of an image, MER and MERS also support a **uniform value**, a color (as an array `[r, g, b]` or `[r, g, b, a]` with values from 0 to 255, or in hexadecimal format) that works like an image filled entirely with that color.
 

@@ -90,7 +90,8 @@ export class TextureSetApp {
   private readonly versionControl: SegmentedControl<FormatVersion>;
   private readonly relief: ExclusiveGroup;
   private readonly material: ExclusiveGroup;
-  private readonly mersNote: HTMLElement;
+  private readonly materialNote: HTMLElement;
+  private readonly materialNoteText: HTMLElement;
   private readonly filenameElement: HTMLElement;
   private readonly jsonCode: HTMLElement;
   private readonly statusElement: HTMLElement;
@@ -147,7 +148,7 @@ export class TextureSetApp {
     this.versionControl = new SegmentedControl(
       "format_version",
       [
-        { value: FormatVersion.V1_21_30, label: "1.21.30", hint: "Recommended · supports MERS" },
+        { value: FormatVersion.V1_21_30, label: "1.21.30", hint: "Recommended · MERS only" },
         { value: FormatVersion.V1_16_100, label: "1.16.100", hint: "Legacy · MER only" },
       ],
       (version) => this.handleVersionSelected(version),
@@ -179,19 +180,15 @@ export class TextureSetApp {
       [LayerKey.NORMAL, LayerKey.HEIGHTMAP],
     );
 
-    this.mersNote = h(
-      "p",
-      "note",
-      icon("info"),
-      h("span", "", "MERS requires format_version 1.21.30, it is selected automatically."),
-    );
+    this.materialNoteText = h("span", "");
+    this.materialNote = h("p", "note", icon("info"), this.materialNoteText);
     this.material = this.exclusiveGroup(
       "material",
       "Material",
       "Metalness, emissive and roughness. MERS adds subsurface scattering.",
       [LayerKey.MER, LayerKey.MERS],
     );
-    this.material.body.append(this.mersNote);
+    this.material.body.append(this.materialNote);
 
     const stepLayers = this.card(
       "2",
@@ -349,16 +346,20 @@ export class TextureSetApp {
       this.config.setLayerEnabled(choice, true);
     }
     if (this.config.version !== previousVersion) {
-      this.showToast(`format_version switched to ${this.config.version} to use MERS.`);
+      const material = this.config.layers[LayerKey.MERS].enabled ? "MERS" : "MER";
+      this.showToast(`format_version switched to ${this.config.version} to use ${material}.`);
     }
     this.refresh();
   }
 
   private handleVersionSelected(version: FormatVersion): void {
+    const hadMer = this.config.layers[LayerKey.MER].enabled;
     const hadMers = this.config.layers[LayerKey.MERS].enabled;
     this.config.setVersion(version);
     if (hadMers && !this.config.layers[LayerKey.MERS].enabled) {
       this.showToast(`MERS is not available in ${version}, switched to MER.`);
+    } else if (hadMer && !this.config.layers[LayerKey.MER].enabled) {
+      this.showToast(`MER is not available in ${version}, switched to MERS.`);
     }
     this.refresh();
   }
@@ -376,7 +377,12 @@ export class TextureSetApp {
         this.editor(layer).element.hidden = layer !== active;
       }
     }
-    this.mersNote.hidden = !this.config.layers[LayerKey.MERS].enabled;
+    const merEnabled = this.config.layers[LayerKey.MER].enabled;
+    const mersEnabled = this.config.layers[LayerKey.MERS].enabled;
+    this.materialNote.hidden = !merEnabled && !mersEnabled;
+    this.materialNoteText.textContent = mersEnabled
+      ? "MERS requires format_version 1.21.30, it is selected automatically."
+      : "MER requires format_version 1.16.100, it is selected automatically.";
 
     // Layer errors caused by an empty name add nothing until a name is entered.
     for (const [layer, editor] of this.editors) {

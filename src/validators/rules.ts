@@ -121,6 +121,12 @@ export function validateConfig(config: TextureSetConfig): ValidationError[] {
   if (mers.enabled && config.version !== FormatVersion.V1_21_30) {
     errors.push({ field: "mers", message: "MERS requires format version 1.21.30." });
   }
+  if (mer.enabled && config.version !== FormatVersion.V1_16_100) {
+    errors.push({
+      field: "mer",
+      message: "MER requires format version 1.16.100, use MERS with 1.21.30.",
+    });
+  }
 
   for (const layer of LAYER_KEYS) {
     const layerConfig = config.layers[layer];
